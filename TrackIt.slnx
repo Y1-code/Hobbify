@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="API/API.csproj" />
+  <Project Path="DAL/DAL.csproj" />
+  <Project Path="Model/Model.csproj" />
+  <Project Path="View/View.csproj" />
+</Solution>
