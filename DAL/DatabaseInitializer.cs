@@ -22,6 +22,7 @@ namespace DAL
             string dbConnectionString = GetDatabaseConnectionString(serverConnectionString);
             await CreateTablesAsync(dbConnectionString);
             await SeedCategoriesAsync(dbConnectionString);
+            await SeedUsersAsync(dbConnectionString);
         }
 
         /// <summary>
@@ -64,6 +65,8 @@ namespace DAL
             {
                 // 1. Users - כל מי שמתחבר: הורה, מנהל מתנס או מנהל מערכת.
                 // HasUpdates מדליק את הפעמון כשמנהל מתנס מטפל בבקשה של ההורה.
+                // IsActive: במערכת לא מוחקים משתמשים. משתמש חסום מסומן כלא פעיל,
+                // לא יכול להתחבר, וכל ההיסטוריה שלו (הרשמות, מתנס) נשמרת.
                 @"CREATE TABLE IF NOT EXISTS Users (
                     UserId       INT AUTO_INCREMENT PRIMARY KEY,
                     FullName     VARCHAR(100) NOT NULL,
@@ -72,6 +75,7 @@ namespace DAL
                     PasswordHash VARCHAR(255) NOT NULL,
                     Role         VARCHAR(20)  NOT NULL DEFAULT 'Parent',
                     HasUpdates   BOOLEAN      NOT NULL DEFAULT FALSE,
+                    IsActive     BOOLEAN      NOT NULL DEFAULT TRUE,
                     CreatedAt    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     CONSTRAINT CHK_Users_Role CHECK (Role IN ('Parent', 'Manager', 'SuperAdmin'))
                 );",
@@ -208,9 +212,8 @@ namespace DAL
         }
 
         // ---------- שלב 3: נתונים התחלתיים ----------
-        // קטגוריות בסיסיות, רק אם הטבלה ריקה.
-        // מנהל המערכת ונתוני הדוגמה (ערים, מתנסים, חוגים) יתווספו בשלב הבא,
-        // אחרי שתהיה מחלקת User ודרך לשמור סיסמאות.
+        // כל הזנה רצה רק אם הטבלה שלה ריקה, כך שאין כפילויות בהרצות חוזרות.
+        // נתוני דוגמה נוספים (ערים, מתנסים, חוגים) יתווספו בשלבים הבאים.
 
         private static async Task SeedCategoriesAsync(string dbConnectionString)
         {
@@ -237,6 +240,56 @@ namespace DAL
 
             using var insertCommand = new MySqlCommand(sql, connection);
             await insertCommand.ExecuteNonQueryAsync();
+        }
+
+        /// <summary>
+        /// מנהל המערכת ומשתמשי דוגמה, רק אם טבלת Users ריקה.
+        /// לפי מסמך הייזום, מנהל המערכת לא נרשם דרך האתר אלא נוצר כאן מראש.
+        /// הסיסמאות מוצפנות ב-BCrypt לפני השמירה, כמו בכל הרשמה רגילה.
+        /// הסיסמאות כאן הן לנתוני דוגמה בלבד.
+        /// </summary>
+        private static async Task SeedUsersAsync(string dbConnectionString)
+        {
+            using var connection = new MySqlConnection(dbConnectionString);
+            await connection.OpenAsync();
+
+            using (var countCommand = new MySqlCommand("SELECT COUNT(*) FROM Users;", connection))
+            {
+                long count = Convert.ToInt64(await countCommand.ExecuteScalarAsync());
+                if (count > 0)
+                {
+                    return;
+                }
+            }
+
+            var users = new (string FullName, string Email, string Phone, string Password, string Role)[]
+            {
+                ("מנהל המערכת", "admin@hobbify.co.il",    "050-0000000", "Admin123",   "SuperAdmin"),
+                ("רונית לוי",   "ronit@hobbify.co.il",    "050-1111111", "Manager123", "Manager"),
+                ("אבי כהן",     "avi@hobbify.co.il",      "050-2222222", "Manager123", "Manager"),
+                ("דנה ישראלי",  "dana@example.com",       "052-3333333", "Parent123",  "Parent"),
+                ("יוסי מזרחי",  "yossi@example.com",      "052-4444444", "Parent123",  "Parent"),
+                ("מיכל אברהם",  "michal@example.com",     "054-5555555", "Parent123",  "Parent"),
+                ("עומר פרץ",    "omer@example.com",       "054-6666666", "Parent123",  "Parent"),
+                ("נועה שפירא",  "noa@example.com",        "053-7777777", "Parent123",  "Parent"),
+                ("איתי גולן",   "itai@example.com",       "053-8888888", "Parent123",  "Parent"),
+                ("שירה ביטון",  "shira@example.com",      "058-9999999", "Parent123",  "Parent")
+            };
+
+            string sql = @"
+                INSERT INTO Users (FullName, Email, Phone, PasswordHash, Role)
+                VALUES (@FullName, @Email, @Phone, @PasswordHash, @Role);";
+
+            foreach (var user in users)
+            {
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@FullName", user.FullName);
+                command.Parameters.AddWithValue("@Email", user.Email);
+                command.Parameters.AddWithValue("@Phone", user.Phone);
+                command.Parameters.AddWithValue("@PasswordHash", BCrypt.Net.BCrypt.HashPassword(user.Password));
+                command.Parameters.AddWithValue("@Role", user.Role);
+                await command.ExecuteNonQueryAsync();
+            }
         }
     }
 }

@@ -1,6 +1,186 @@
+
+# בדיקות ה-API של המשתמשים.
+# להרצה ב-VS Code צריך את ההרחבה REST Client, ואז לוחצים "Send Request" מעל כל בקשה.
+# אם ה-API שלך עולה בפורט אחר, שנה את המספר בשורה הבאה.
 @API_HostAddress = http://localhost:5208
 
-GET {{API_HostAddress}}/weatherforecast/
+###
+
+# ===== שליפות =====
+
+# כל המשתמשים (צפוי: 10 משתמשי הדוגמה)
+GET {{API_HostAddress}}/api/users
 Accept: application/json
+
+###
+
+# משתמש לפי מזהה (צפוי: מנהל המערכת)
+GET {{API_HostAddress}}/api/users/1
+Accept: application/json
+
+###
+
+# משתמש שלא קיים (צפוי: 404)
+GET {{API_HostAddress}}/api/users/999
+
+###
+
+# האם אימייל קיים (צפוי: true)
+GET {{API_HostAddress}}/api/users/email-exists?email=dana@example.com
+
+###
+
+# האם אימייל קיים, באותיות גדולות (צפוי: true, ההשוואה לא מבדילה)
+GET {{API_HostAddress}}/api/users/email-exists?email=DANA@EXAMPLE.COM
+
+###
+
+# ספירת משתמשים לפי תפקיד (צפוי: Manager 2, Parent 7, SuperAdmin 1)
+GET {{API_HostAddress}}/api/users/count-by-role
+
+###
+
+# ===== הרשמה והתחברות =====
+
+# הרשמה של הורה בדיקה (צפוי: 201 והמשתמש החדש, עם תפקיד Parent)
+POST {{API_HostAddress}}/api/users/register
+Content-Type: application/json
+
+{
+  "fullName": "הורה בדיקה",
+  "email": "test.parent@example.com",
+  "phone": "050-9999999",
+  "password": "Test123"
+}
+
+###
+
+# הרשמה עם אימייל תפוס (צפוי: 409)
+POST {{API_HostAddress}}/api/users/register
+Content-Type: application/json
+
+{
+  "fullName": "כפילות",
+  "email": "dana@example.com",
+  "password": "Test123"
+}
+
+###
+
+# הרשמה עם סיסמה קצרה ואימייל לא תקין (צפוי: 400 עם הסבר)
+POST {{API_HostAddress}}/api/users/register
+Content-Type: application/json
+
+{
+  "fullName": "",
+  "email": "not-an-email",
+  "password": "123"
+}
+
+###
+
+# התחברות עם פרטים נכונים (צפוי: 200 והמשתמש, בלי סיסמה)
+POST {{API_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "admin@hobbify.co.il",
+  "password": "Admin123"
+}
+
+###
+
+# התחברות עם סיסמה שגויה (צפוי: 401)
+POST {{API_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "admin@hobbify.co.il",
+  "password": "admin123"
+}
+
+###
+
+# ===== עדכונים על משתמש הבדיקה =====
+# לפני ההרצה, להחליף את 11 במזהה שהוחזר בהרשמה של הורה הבדיקה.
+
+# שינוי תפקיד (צפוי: 204)
+PUT {{API_HostAddress}}/api/users/11/role?role=Manager
+
+###
+
+# שינוי לתפקיד שלא קיים (צפוי: 400)
+PUT {{API_HostAddress}}/api/users/11/role?role=King
+
+###
+
+# עדכון פרטים (צפוי: 204)
+PUT {{API_HostAddress}}/api/users/11/details
+Content-Type: application/json
+
+{
+  "fullName": "הורה בדיקה מעודכן",
+  "phone": "050-8888888"
+}
+
+###
+
+# עדכון סיסמה (צפוי: 204, ואחריו התחברות עם NewPass123 עובדת)
+PUT {{API_HostAddress}}/api/users/11/password
+Content-Type: application/json
+
+"NewPass123"
+
+###
+
+# עדכון אימייל (צפוי: 204)
+PUT {{API_HostAddress}}/api/users/11/email
+Content-Type: application/json
+
+"new.test.parent@example.com"
+
+###
+
+# עדכון לאימייל של משתמש אחר (צפוי: 409)
+PUT {{API_HostAddress}}/api/users/11/email
+Content-Type: application/json
+
+"dana@example.com"
+
+###
+
+# הדלקת הפעמון (צפוי: 204, ואז GET על המשתמש מראה hasUpdates: true)
+PUT {{API_HostAddress}}/api/users/11/has-updates?value=true
+
+###
+
+# כיבוי הפעמון (צפוי: 204)
+PUT {{API_HostAddress}}/api/users/11/has-updates?value=false
+
+###
+
+# חסימת משתמש הבדיקה (צפוי: 204)
+PUT {{API_HostAddress}}/api/users/11/active?value=false
+
+###
+
+# התחברות של משתמש חסום, גם עם סיסמה נכונה (צפוי: 401)
+POST {{API_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "new.test.parent@example.com",
+  "password": "NewPass123"
+}
+
+###
+
+# החזרה לפעילות (צפוי: 204, ואחריו ההתחברות שלמעלה מחזירה 200)
+PUT {{API_HostAddress}}/api/users/11/active?value=true
+
+###
+
+# מחיקת משתמש הבדיקה (צפוי: 204)
+DELETE {{API_HostAddress}}/api/users/11
 
 ###
