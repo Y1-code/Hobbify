@@ -1,7 +1,141 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Hobbify · חוגים לילדים במתנסים</PageTitle>
 
-<h1>Hello, world!</h1>
+<main class="page">
+    <div class="home">
 
-Welcome to your new app.
+        @* ===== צד ימין: כותרת, סינון, רשימת ערים ועוזר ===== *@
+        <section class="home-intro">
+
+            @* 1. כותרת והסבר קצר *@
+            <h1>איזה חוג מתאים לשבוע שלכם?</h1>
+            <p class="lede">
+                כל החוגים של המתנסים במקום אחד: גילאים, ימים, שעות ומקומות פנויים.
+                בוחרים עיר, מתנס וחוג, ונרשמים כאן באתר.
+            </p>
+
+            @* 2. סינון לפי גיל וימים (בינתיים רק עיצוב) *@
+            <div class="sheet pre-filter" role="group" aria-label="מה מתאים לכם">
+                <div class="field">
+                    <label for="home-age">גיל הילד</label>
+                    <select class="select" id="home-age">
+                        <option value="">כל גיל</option>
+                        @for (int age = 5; age <= 13; age++)
+                        {
+                            <option>@age</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <span class="label" id="home-days-label">ימים פנויים</span>
+                    <div class="week-filter" role="group" aria-labelledby="home-days-label">
+                        @foreach (var day in days)
+                        {
+                            <button type="button" aria-pressed="false" aria-label="@day.Full">@day.Letter</button>
+                        }
+                    </div>
+                </div>
+                <p class="hint">אפשר לבחור עכשיו או בדף המתנס. הבחירה תישמר כשתעברו לעיר.</p>
+            </div>
+
+            @* 3. חיפוש עיר ורשימת הערים *@
+            <div class="sheet city-panel">
+                <div class="search">
+                    <label class="visually-hidden" for="city-q">חיפוש עיר</label>
+                    <Icon Name="search" />
+                    <input class="input" id="city-q" type="search" placeholder="חיפוש עיר" autocomplete="off" />
+                </div>
+                <ul class="city-list">
+                    @foreach (var city in cities)
+                    {
+                        <li>
+                            <a href="city/@city.Code">
+                                <Icon Name="map-pin" />
+                                <b>@city.Name</b>
+                                <span class="muted">@city.Centers מתנסים</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            @* 4. קישור לעוזר החוגים *@
+            <a class="sheet ai-teaser" href="assistant">
+                <Icon Name="sparkles" />
+                <div>
+                    <b>לא בטוחים מה לבחור?</b>
+                    <p>ספרו לעוזר החוגים על הילד ועל הימים הפנויים, והוא יציע חוגים שקיימים בעיר שלכם.</p>
+                </div>
+            </a>
+        </section>
+
+        @* ===== צד שמאל: 5. מפת ישראל עם הערים ===== *@
+        <section class="map-col" aria-label="מפת ישראל">
+            <div class="map-sheet">
+                <svg class="map-svg" viewBox="0 0 230 400" role="group" style="direction:ltr"
+                     aria-label="ערים במפה. לחצו על עיר כדי לראות את המתנסים שלה.">
+                    <path class="sea" d="M0,0 L134,0 L129.9,49.1 L125.1,75.2 L122.4,91.2 L114.2,92.8 L109.5,91.2 L107.4,108.8 L102,136 L94.5,171.2 L88.4,196.8 L83.6,211.2 L80.2,224 L70.7,248 L54.4,276.8 L42.2,299.2 L16.3,331.2 L6.8,348.8 L0,356 Z" />
+                    <path class="coast" d="M134,0 L129.9,49.1 L125.1,75.2 L122.4,91.2 L114.2,92.8 L109.5,91.2 L107.4,108.8 L102,136 L94.5,171.2 L88.4,196.8 L83.6,211.2 L80.2,224 L70.7,248 L54.4,276.8 L42.2,299.2 L16.3,331.2 L6.8,348.8 L0,356" />
+                    <text class="label-sea" x="26" y="170">הים התיכון</text>
+                    <ellipse class="water" cx="195.8" cy="92.8" rx="4.5" ry="8" />
+                    <ellipse class="water" cx="177" cy="318" rx="5" ry="52" transform="rotate(7 177 318)" />
+
+                    @foreach (var city in cities.Where(c => c.Code != "eilat"))
+                    {
+                        <a class="pin" href="city/@city.Code" aria-label="@city.Name, @city.Centers מתנסים">
+                            <circle class="halo" cx="@city.X" cy="@city.Y" r="9" />
+                            <circle class="dot" cx="@city.X" cy="@city.Y" />
+                            <text x="@city.LabelX" y="@city.LabelY" text-anchor="@(city.LabelOnLeft ? "end" : null)">@city.Name</text>
+                        </a>
+                    }
+
+                    @* אילת רחוקה מדי, ולכן היא בתיבה קטנה בפינה *@
+                    <g transform="translate(150 360)">
+                        <rect class="inset-box" x="0" y="0" width="72" height="32" rx="4" />
+                        <text class="inset-title" x="8" y="12">רחוק יותר דרומה</text>
+                        <a class="pin" href="city/eilat" aria-label="אילת, 2 מתנסים">
+                            <circle class="halo" cx="14" cy="22" r="8" />
+                            <circle class="dot" cx="14" cy="22" />
+                            <text x="21" y="24.5">אילת</text>
+                        </a>
+                    </g>
+                </svg>
+            </div>
+            <p class="small muted mt-2">הנתונים בדף הם נתוני דוגמה.</p>
+        </section>
+    </div>
+</main>
+
+@code {
+    // נתוני דוגמה. בשלב מאוחר יותר הערים יגיעו מבסיס הנתונים דרך ה-API.
+    // X ו-Y הם המיקום על המפה. LabelOnLeft אומר אם שם העיר כתוב משמאל לנקודה.
+    private record City(string Code, string Name, int Centers,
+                        double X, double Y, double LabelX, double LabelY, bool LabelOnLeft);
+
+    private readonly List<City> cities = new()
+    {
+        new("jlm",      "ירושלים",      16, 144.7, 261.1, 151.5, 263.6, false),
+        new("tlv",      "תל אביב-יפו",  14,  85.8, 210.4,  78,   209,   true),
+        new("rishon",   "ראשון לציון",  10,  86.9, 228.3,  79,   232,   true),
+        new("haifa",    "חיפה",          9, 114.1,  97,   106,    99.5, true),
+        new("pt",       "פתח תקווה",     8, 100.2, 211,   107,   213.5, false),
+        new("netanya",  "נתניה",         7,  95.6, 172.6,  88,   175.1, true),
+        new("bs",       "באר שבע",       7,  87.2, 343.7,  94,   346.2, false),
+        new("ashdod",   "אשדוד",         6,  68.7, 255.4,  61,   257.9, true),
+        new("ks",       "כפר סבא",       5, 103,   194,   110,   196.5, false),
+        new("modiin",   "מודיעין",       4, 117,   236,   124,   238.5, false),
+        new("karmiel",  "כרמיאל",        4, 155.9,  77.8, 163,    80.3, false),
+        new("nahariya", "נהריה",         3, 128.4,  63,   121,    65.5, true),
+        new("afula",    "עפולה",         3, 154.9, 126.9, 162,   129.4, false),
+        new("eilat",    "אילת",          2,   0,     0,     0,     0,   false),
+    };
+
+    private record Day(string Letter, string Full);
+
+    private readonly List<Day> days = new()
+    {
+        new("א", "ראשון"), new("ב", "שני"), new("ג", "שלישי"),
+        new("ד", "רביעי"), new("ה", "חמישי"), new("ו", "שישי"),
+    };
+}

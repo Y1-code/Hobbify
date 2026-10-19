@@ -1,0 +1,42 @@
+@* שדה טופס: תווית ותיבת קלט, עם הסבר קטן מתחת אם צריך.
+   שימוש: <Field Id="reg-email" Label="אימייל" Type="email" Dir="ltr" Required="true" /> *@
+
+<div class="field">
+    <label for="@Id">
+        @Label
+        @if (Required)
+        {
+            <span class="must">*</span>
+        }
+    </label>
+
+    <input class="input" id="@Id" type="@Type" dir="@Dir" autocomplete="@AutoComplete" />
+
+    @if (!string.IsNullOrEmpty(Hint))
+    {
+        <span class="hint">@Hint</span>
+    }
+</div>
+
+@code {
+    // המזהה של התיבה. התווית מתחברת אליה דרך for, וכך לחיצה על התווית מכניסה לשדה.
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+
+    // הטקסט שמעל התיבה
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    // סוג השדה: text, email, password, tel
+    [Parameter] public string Type { get; set; } = "text";
+
+    // כיוון הכתיבה. "ltr" לשדות באנגלית כמו אימייל וסיסמה.
+    [Parameter] public string Dir { get; set; } = "rtl";
+
+    // הסבר קטן מתחת לתיבה (לא חובה)
+    [Parameter] public string? Hint { get; set; }
+
+    // האם להציג כוכבית אדומה של שדה חובה
+    [Parameter] public bool Required { get; set; }
+
+    // עוזר לדפדפן להציע מילוי אוטומטי (email, name, tel, current-password, new-password)
+    [Parameter] public string? AutoComplete { get; set; }
+}
