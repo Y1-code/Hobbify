@@ -1,0 +1,370 @@
+@page "/login"
+@layout LoginLayout
+
+<PageTitle>התחברות · Hobbify</PageTitle>
+
+<style>
+    .auth-page {
+        --ink: #17233b;
+        --muted: #68758a;
+        --line: #e3e8f0;
+        --accent: #5368d8;
+        --accent-dark: #4053bd;
+
+        min-height: 100vh;
+        padding: 36px 20px 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--ink);
+        background:
+            radial-gradient(ellipse at 15% 18%, rgba(160, 193, 255, .30), transparent 33%),
+            radial-gradient(ellipse at 88% 84%, rgba(255, 205, 183, .30), transparent 30%),
+            #f7f8fc;
+        font-family: "Heebo", "Arial", sans-serif;
+    }
+
+    .auth-page .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        color: var(--ink);
+        font-size: 1.35rem;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .auth-page .brand-mark {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 13px;
+        color: #fff;
+        background: var(--accent);
+        box-shadow: 0 7px 16px rgba(83, 104, 216, .25);
+        font-size: 1.15rem;
+    }
+
+    .auth-page .auth-card {
+        width: min(100%, 480px);
+        overflow: hidden;
+        border: 1px solid rgba(220, 226, 237, .9);
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 24px 70px rgba(36, 53, 91, .12);
+    }
+
+    .auth-page .notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 17px 22px;
+        border-bottom: 1px solid #e7ebf5;
+        color: #4b5870;
+        background: #f4f6ff;
+        font-size: .9rem;
+        line-height: 1.65;
+    }
+
+    .auth-page .notice p {
+        margin: 0;
+    }
+
+    .auth-page .notice-icon {
+        flex: 0 0 21px;
+        width: 21px;
+        height: 21px;
+        display: grid;
+        place-items: center;
+        margin-top: 2px;
+        border: 1.5px solid #6577d7;
+        border-radius: 50%;
+        color: #5368d8;
+        font-size: .8rem;
+        font-weight: 700;
+    }
+
+    .auth-page .tab-toggle {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        clip-path: inset(50%);
+    }
+
+    .auth-page .tabs {
+        display: flex;
+        gap: 8px;
+        padding: 16px 22px 0;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .auth-page .tab {
+        position: relative;
+        flex: 1;
+        padding: 12px 8px 14px;
+        color: #778196;
+        cursor: pointer;
+        font-size: .94rem;
+        font-weight: 650;
+        text-align: center;
+        transition: color .18s ease;
+    }
+
+    .auth-page #tab-login:checked ~ .tabs label[for="tab-login"],
+    .auth-page #tab-register:checked ~ .tabs label[for="tab-register"] {
+        color: var(--accent);
+    }
+
+    .auth-page #tab-login:checked ~ .tabs label[for="tab-login"]::after,
+    .auth-page #tab-register:checked ~ .tabs label[for="tab-register"]::after {
+        position: absolute;
+        right: 18%;
+        bottom: -1px;
+        left: 18%;
+        height: 3px;
+        border-radius: 3px 3px 0 0;
+        background: var(--accent);
+        content: "";
+    }
+
+    .auth-page #tab-login:focus-visible ~ .tabs label[for="tab-login"],
+    .auth-page #tab-register:focus-visible ~ .tabs label[for="tab-register"] {
+        outline: 3px solid rgba(83, 104, 216, .35);
+        outline-offset: 2px;
+    }
+
+    .auth-page .auth-form {
+        display: none;
+        padding: 26px 30px 28px;
+    }
+
+    .auth-page #tab-login:checked ~ .login-form,
+    .auth-page #tab-register:checked ~ .register-form {
+        display: grid;
+        gap: 18px;
+    }
+
+    .auth-page .form-heading {
+        margin-bottom: 2px;
+        text-align: center;
+    }
+
+    .auth-page .form-heading h1 {
+        margin: 0;
+        color: var(--ink);
+        font-size: 1.55rem;
+        font-weight: 750;
+    }
+
+    .auth-page .form-heading p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: .92rem;
+    }
+
+    .auth-page .field {
+        display: grid;
+        gap: 7px;
+    }
+
+    .auth-page .field label {
+        color: #303d54;
+        font-size: .9rem;
+        font-weight: 650;
+    }
+
+    .auth-page .field input {
+        width: 100%;
+        min-height: 48px;
+        box-sizing: border-box;
+        padding: 0 14px;
+        border: 1px solid #dce2ec;
+        border-radius: 10px;
+        outline: none;
+        color: var(--ink);
+        background: #fff;
+        font: inherit;
+        transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .auth-page .field input::placeholder {
+        color: #a3adbd;
+    }
+
+    .auth-page .field input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(83, 104, 216, .13);
+    }
+
+    .auth-page .field-hint {
+        color: var(--muted);
+        font-size: .8rem;
+    }
+
+    .auth-page .primary-button {
+        min-height: 49px;
+        margin-top: 2px;
+        border: 0;
+        border-radius: 10px;
+        color: #fff;
+        background: var(--accent);
+        box-shadow: 0 7px 15px rgba(83, 104, 216, .22);
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        transition: background .18s ease, transform .18s ease;
+    }
+
+    .auth-page .primary-button:hover {
+        background: var(--accent-dark);
+        transform: translateY(-1px);
+    }
+
+    .auth-page .form-note {
+        margin: 0;
+        color: var(--muted);
+        font-size: .87rem;
+        text-align: center;
+    }
+
+    .auth-page .form-note label {
+        color: var(--accent);
+        cursor: pointer;
+        font-weight: 700;
+    }
+
+    .auth-page .card-footer {
+        padding: 17px 22px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: .87rem;
+        text-align: center;
+    }
+
+    .auth-page .card-footer a {
+        margin-right: 4px;
+        color: var(--accent);
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .auth-page .card-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .auth-page .page-caption {
+        margin: 20px 0 0;
+        color: #8b95a8;
+        font-size: .85rem;
+    }
+
+    @@media (max-width: 480px) {
+        .auth-page {
+            justify-content: flex-start;
+            padding: 24px 14px;
+        }
+
+        .auth-page .auth-card {
+            border-radius: 16px;
+        }
+
+        .auth-page .notice {
+            padding: 15px 17px;
+        }
+
+        .auth-page .tabs {
+            padding-right: 14px;
+            padding-left: 14px;
+        }
+
+        .auth-page .auth-form {
+            padding: 23px 19px 24px;
+        }
+    }
+</style>
+
+<main class="auth-page" dir="rtl">
+    <a class="brand" href="/" aria-label="Hobbify - עמוד הבית">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span>Hobbify</span>
+    </a>
+
+    <section class="auth-card" aria-label="התחברות או יצירת חשבון">
+        <div class="notice">
+            <span class="notice-icon" aria-hidden="true">i</span>
+            <p>כדי להירשם לחוג, לשמור מועדפים, לדרג ולדבר עם עוזר החוגים צריך חשבון. החיפוש פתוח לכולם.</p>
+        </div>
+
+        <input class="tab-toggle" type="radio" name="auth-tab" id="tab-login" checked />
+        <input class="tab-toggle" type="radio" name="auth-tab" id="tab-register" />
+
+        <div class="tabs" role="tablist" aria-label="בחירת פעולה">
+            <label class="tab" for="tab-login" role="tab">התחברות</label>
+            <label class="tab" for="tab-register" role="tab">חשבון חדש להורה</label>
+        </div>
+
+        <div class="auth-form login-form" role="tabpanel" aria-label="התחברות">
+            <div class="form-heading">
+                <h1>כיף שחזרת!</h1>
+                <p>התחברו כדי להמשיך לגלות חוגים</p>
+            </div>
+
+            <div class="field">
+                <label for="login-email">אימייל</label>
+                <input id="login-email" type="email" dir="ltr" autocomplete="email" placeholder="name@example.com" />
+            </div>
+
+            <div class="field">
+                <label for="login-password">סיסמה</label>
+                <input id="login-password" type="password" autocomplete="current-password" placeholder="הקלידו את הסיסמה" />
+            </div>
+
+            <button class="primary-button" type="button">התחברות</button>
+            <p class="form-note">עדיין אין לכם חשבון? בחרו <label for="tab-register">חשבון חדש להורה</label></p>
+        </div>
+
+        <div class="auth-form register-form" role="tabpanel" aria-label="יצירת חשבון">
+            <div class="form-heading">
+                <h1>מצטרפים ל-Hobbify</h1>
+                <p>יוצרים חשבון הורה ומתחילים לגלות</p>
+            </div>
+
+            <div class="field">
+                <label for="register-name">שם מלא</label>
+                <input id="register-name" type="text" autocomplete="name" placeholder="השם שלכם" />
+            </div>
+
+            <div class="field">
+                <label for="register-email">אימייל</label>
+                <input id="register-email" type="email" dir="ltr" autocomplete="email" placeholder="name@example.com" />
+            </div>
+
+            <div class="field">
+                <label for="register-phone">טלפון</label>
+                <input id="register-phone" type="tel" dir="ltr" autocomplete="tel" placeholder="050-000-0000" />
+                <span class="field-hint">המתנ״ס יוכל ליצור קשר לגבי ההרשמה</span>
+            </div>
+
+            <div class="field">
+                <label for="register-password">סיסמה</label>
+                <input id="register-password" type="password" autocomplete="new-password" placeholder="לפחות 6 תווים" />
+            </div>
+
+            <button class="primary-button" type="button">יצירת חשבון</button>
+            <p class="form-note">כבר יש לכם חשבון? <label for="tab-login">התחברו כאן</label></p>
+        </div>
+
+        <footer class="card-footer">
+            מנהלים מתנ״ס?
+            <a href="/">הגשת בקשה להצטרף כמתנ״ס</a>
+        </footer>
+    </section>
+
+    <p class="page-caption">החוג הבא שלכם מתחיל כאן</p>
+</main>
