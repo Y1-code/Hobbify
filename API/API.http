@@ -181,6 +181,8 @@ PUT {{API_HostAddress}}/api/users/11/active?value=true
 ###
 
 # מחיקת משתמש הבדיקה (צפוי: 204)
-DELETE {{API_HostAddress}}/api/users/11
+DELETE {{API_HostAddress}}/api/users/14
 
 ###
+
+
