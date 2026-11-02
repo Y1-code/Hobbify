@@ -6,6 +6,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// הכתובת של ה-API נקראת מ-appsettings.json. אם היא חסרה, התצוגה לא עולה.
+string apiBaseUrl = builder.Configuration["ApiBaseUrl"]
+    ?? throw new InvalidOperationException("ApiBaseUrl not found in appsettings.json.");
+
+// HttpClient ששולח בקשות ל-API, כשהוא כבר מכיר את הכתובת.
+// כל דף שכותב @inject HttpClient Http מקבל אותו מוכן.
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

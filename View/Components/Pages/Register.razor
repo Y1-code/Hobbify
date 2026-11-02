@@ -1,4 +1,20 @@
 @page "/register"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using System.Net
+@using System.Net.Mail
+@using Model
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+@* נוסף בשלב 4, ובשלב 5 נוספה ההפעלה.
+   @rendermode: הדף מחובר לשרת בחיבור קבוע, וכל לחיצה מפעילה קוד C# בשרת, בלי JavaScript.
+   prerender: false: הטופס מוצג רק אחרי שהחיבור מוכן, כדי שהקלדה ולחיצות לא ילכו לאיבוד.
+
+   הדף לא ניגש לבסיס הנתונים. הוא שולח בקשות ל-UsersController ב-API, והבקר מפעיל את UserDB.
+   ההרשמה בשני שלבים:
+   1. קריאה: בודקים שהאימייל לא רשום כבר.
+   2. כתיבה: שולחים את ההורה החדש, וה-API שומר אותו.
+   אחרי הצלחה: הודעה עם ספירה לאחור, ואחרי 5 שניות מעבר לדף ההתחברות. *@
 
 <PageTitle>הרשמה · Hobbify</PageTitle>
 
@@ -14,17 +30,41 @@
             <a href="register" aria-current="page">חשבון חדש להורה</a>
         </nav>
 
-        <form class="sheet-pad stack">
-            <Field Id="reg-name" Label="שם מלא" Required="true" AutoComplete="name" />
-            <Field Id="reg-email" Label="אימייל" Type="email" Dir="ltr" Required="true" AutoComplete="email" />
+        @* novalidate: הדפדפן לא בודק את השדות בעצמו. הבדיקה נעשית בקוד שבתחתית הדף *@
+        <form class="sheet-pad stack" novalidate>
+            @* כל שדה מקושר למשתנה בקוד עם @bind-Value *@
+            <Field Id="reg-name" Label="שם מלא" Required="true" AutoComplete="name" @bind-Value="fullName" />
+            <Field Id="reg-email" Label="אימייל" Type="email" Dir="ltr" Required="true" AutoComplete="email" @bind-Value="email" />
             <Field Id="reg-phone" Label="טלפון" Type="tel" Dir="ltr" AutoComplete="tel"
-                   Hint="המתנס ישתמש בו כדי ליצור קשר לגבי ההרשמה" />
+                   Hint="המתנס ישתמש בו כדי ליצור קשר לגבי ההרשמה" @bind-Value="phone" />
             <Field Id="reg-password" Label="סיסמה" Type="password" Dir="ltr" Required="true"
-                   AutoComplete="new-password" Hint="לפחות 6 תווים" />
+                   AutoComplete="new-password" Hint="לפחות 6 תווים" @bind-Value="password" />
             <Field Id="reg-confirm" Label="אימות סיסמה" Type="password" Dir="ltr" Required="true"
-                   AutoComplete="new-password" />
+                   AutoComplete="new-password" @bind-Value="confirmPassword" />
 
-            <button class="btn btn-primary btn-lg btn-block" type="button">יצירת חשבון</button>
+            @* הודעת שגיאה. מוצגת רק כשיש שגיאה *@
+            @if (errorMessage != null)
+            {
+                <div class="notice notice-bad" role="alert">
+                    <Icon Name="circle-alert" />
+                    <span>@errorMessage</span>
+                </div>
+            }
+
+            @* הודעת הצלחה, עם ספירה לאחור עד המעבר לדף ההתחברות *@
+            @if (isRegistered)
+            {
+                <div class="notice notice-ok" role="status">
+                    <Icon Name="circle-check" />
+                    <span><b>ההרשמה הצליחה!</b> עוברים לדף ההתחברות בעוד @secondsLeft שניות.</span>
+                </div>
+            }
+
+            @* לחיצה מפעילה את RegisterAsync. בזמן השליחה ואחרי הצלחה הכפתור מושבת, כדי שלא ילחצו פעמיים *@
+            <button class="btn btn-primary btn-lg btn-block" type="button"
+                    disabled="@(isBusy || isRegistered)" @onclick="RegisterAsync">
+                @(isBusy ? "בודקים..." : "יצירת חשבון")
+            </button>
         </form>
 
         <div class="foot">
@@ -32,3 +72,105 @@
         </div>
     </div>
 </main>
+
+@code {
+    // הערכים שהמשתמש הקליד. כל משתנה מקושר לאחד השדות
+    private string? fullName;
+    private string? email;
+    private string? phone;
+    private string? password;
+    private string? confirmPassword;
+
+    // מצב הדף: הודעת השגיאה, האם בקשה בדרך, האם ההרשמה הצליחה, וכמה שניות נשארו עד המעבר
+    private string? errorMessage;
+    private bool isBusy;
+    private bool isRegistered;
+    private int secondsLeft = 5;
+
+    private async Task RegisterAsync()
+    {
+        errorMessage = null;
+
+        // ----- בדיקות קלט, לפני שפונים לשרת -----
+        if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(email)
+            || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(confirmPassword))
+        {
+            errorMessage = "יש למלא את כל שדות החובה.";
+            return;
+        }
+
+        if (!MailAddress.TryCreate(email.Trim(), out _))
+        {
+            errorMessage = "כתובת האימייל לא תקינה.";
+            return;
+        }
+
+        if (password.Length < 6)
+        {
+            errorMessage = "הסיסמה צריכה להכיל לפחות 6 תווים.";
+            return;
+        }
+
+        if (password != confirmPassword)
+        {
+            errorMessage = "הסיסמה ואימות הסיסמה לא זהים.";
+            return;
+        }
+
+        isBusy = true;
+        try
+        {
+            // ----- שלב 1, קריאה: האם האימייל כבר רשום? -----
+            bool emailExists = await Http.GetFromJsonAsync<bool>(
+                $"api/users/email-exists?email={Uri.EscapeDataString(email.Trim())}");
+            if (emailExists)
+            {
+                errorMessage = "האימייל הזה כבר רשום במערכת.";
+                return;
+            }
+
+            // ----- שלב 2, כתיבה: שליחת ההורה החדש ל-API -----
+            var request = new RegisterRequest
+            {
+                FullName = fullName.Trim(),
+                Email = email.Trim(),
+                Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim(),
+                Password = password
+            };
+            HttpResponseMessage response = await Http.PostAsJsonAsync("api/users/register", request);
+
+            if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                // מישהו נרשם עם אותו אימייל בין שלב 1 לשלב 2
+                errorMessage = "האימייל הזה כבר רשום במערכת.";
+                return;
+            }
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = "ההרשמה נכשלה. נסו שוב.";
+                return;
+            }
+        }
+        catch (HttpRequestException)
+        {
+            // ה-API לא פועל, או שהכתובת ב-appsettings.json לא נכונה
+            errorMessage = "השרת לא זמין כרגע. נסו שוב בעוד רגע.";
+            return;
+        }
+        finally
+        {
+            // רץ תמיד, גם אחרי return, כדי שהכפתור לא יישאר מושבת
+            isBusy = false;
+        }
+
+        // ----- הצלחה: ספירה לאחור ומעבר לדף ההתחברות -----
+        isRegistered = true;
+        while (secondsLeft > 0)
+        {
+            StateHasChanged();
+            await Task.Delay(1000);
+            secondsLeft--;
+        }
+        Navigation.NavigateTo("login");
+    }
+}

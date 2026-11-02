@@ -1,5 +1,6 @@
-@* שדה טופס: תווית ותיבת קלט, עם הסבר קטן מתחת אם צריך.
-   שימוש: <Field Id="reg-email" Label="אימייל" Type="email" Dir="ltr" Required="true" /> *@
+@* נוסף בשלב 4. בשלב 5 נוסף קישור דו כיווני בין השדה למשתנה בדף (Value ו-ValueChanged).
+   שדה טופס: תווית ותיבת קלט, עם הסבר קטן מתחת אם צריך.
+   שימוש: <Field Id="reg-email" Label="אימייל" Type="email" Dir="ltr" @bind-Value="email" /> *@
 
 <div class="field">
     <label for="@Id">
@@ -10,7 +11,9 @@
         }
     </label>
 
-    <input class="input" id="@Id" type="@Type" dir="@Dir" autocomplete="@AutoComplete" />
+    @* התיבה מציגה את הערך שקיבלה מהדף. כשהמשתמש משנה אותו ויוצא מהשדה, הערך החדש נשלח בחזרה לדף *@
+    <input class="input" id="@Id" type="@Type" dir="@Dir" autocomplete="@AutoComplete"
+           value="@Value" @onchange="OnValueChanged" />
 
     @if (!string.IsNullOrEmpty(Hint))
     {
@@ -39,4 +42,15 @@
 
     // עוזר לדפדפן להציע מילוי אוטומטי (email, name, tel, current-password, new-password)
     [Parameter] public string? AutoComplete { get; set; }
+
+    // נוסף בשלב 5: הערך שבתיבה.
+    // שני הפרמטרים האלה יחד מאפשרים לדף לכתוב @bind-Value="משתנה" ולקבל קישור דו כיווני.
+    // דף שלא מעביר אותם, כמו דף ההתחברות, ממשיך לעבוד כמו קודם.
+    [Parameter] public string? Value { get; set; }
+
+    // הפעולה של הדף שמקבלת את הערך החדש
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    // נקראת כשהמשתמש שינה את הערך ויצא מהשדה, ומעבירה את הערך החדש לדף
+    private Task OnValueChanged(ChangeEventArgs e) => ValueChanged.InvokeAsync(e.Value?.ToString());
 }
