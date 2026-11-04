@@ -1,8 +1,9 @@
 namespace Model
 {
     /// <summary>
-    /// שמות התפקידים כפי שהם נשמרים בעמודה Role בטבלת Users.
+    /// שמות התפקידים, כפי שהם שמורים בעמודה RoleName בטבלת Roles.
     /// משתמשים בקבועים האלה במקום לכתוב את המחרוזת ידנית, כדי שטעות הקלדה לא תעבור.
+    /// השורות בטבלה נוצרות ב-DatabaseInitializer.SeedRolesAsync, והשמות שם חייבים להיות זהים לכאן.
     /// </summary>
     public static class Roles
     {

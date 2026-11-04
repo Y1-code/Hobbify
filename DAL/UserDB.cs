@@ -16,9 +16,13 @@ namespace DAL
         private readonly string connectionString;
 
         // שאילתת בסיס אחת לכל השליפות, כדי שהעמודות יהיו תמיד באותו סדר.
+        // טבלת Users מצורפת לטבלת Roles (JOIN), כדי לקבל גם את שם התפקיד ולא רק את המזהה שלו.
+        // AS Role נותן לעמודה את השם Role, כך ש-ReadUser קורא אותה כמו קודם.
         private const string SelectUsers = @"
-            SELECT UserId, FullName, Email, Phone, Role, HasUpdates, IsActive, CreatedAt
-            FROM Users";
+            SELECT u.UserId, u.FullName, u.Email, u.Phone, u.RoleId, r.RoleName AS Role,
+                   u.HasUpdates, u.IsActive, u.CreatedAt
+            FROM Users u
+            INNER JOIN Roles r ON u.RoleId = r.RoleId";
 
         public UserDB(string connectionString)
         {
@@ -30,6 +34,7 @@ namespace DAL
         /// <summary>
         /// מוסיפה משתמש ומחזירה את המזהה החדש שלו.
         /// הסיסמה מוצפנת כאן, לפני שהיא נשמרת.
+        /// את מזהה התפקיד מוצאים לפי שם התפקיד, בתוך אותה שאילתה (INSERT ... SELECT).
         /// </summary>
         public async Task<int> AddUserAsync(User user, string password)
         {
@@ -37,8 +42,10 @@ namespace DAL
             await connection.OpenAsync();
 
             string sql = @"
-                INSERT INTO Users (FullName, Email, Phone, PasswordHash, Role)
-                VALUES (@FullName, @Email, @Phone, @PasswordHash, @Role);
+                INSERT INTO Users (FullName, Email, Phone, PasswordHash, RoleId)
+                SELECT @FullName, @Email, @Phone, @PasswordHash, RoleId
+                FROM Roles
+                WHERE RoleName = @Role;
                 SELECT LAST_INSERT_ID();";
 
             using var command = new MySqlCommand(sql, connection);
@@ -48,7 +55,14 @@ namespace DAL
             command.Parameters.AddWithValue("@PasswordHash", BCrypt.Net.BCrypt.HashPassword(password));
             command.Parameters.AddWithValue("@Role", user.Role);
 
-            return Convert.ToInt32(await command.ExecuteScalarAsync());
+            int newId = Convert.ToInt32(await command.ExecuteScalarAsync());
+
+            // אם התפקיד לא קיים בטבלת Roles, לא נוספה אף שורה והמזהה הוא 0
+            if (newId == 0)
+            {
+                throw new ArgumentException($"Role '{user.Role}' does not exist in the Roles table.");
+            }
+            return newId;
         }
 
         /// <summary>
@@ -77,9 +91,11 @@ namespace DAL
             await connection.OpenAsync();
 
             string sql = @"
-                SELECT UserId, FullName, Email, Phone, Role, HasUpdates, IsActive, CreatedAt, PasswordHash
-                FROM Users
-                WHERE Email = @Email AND IsActive = TRUE;";
+                SELECT u.UserId, u.FullName, u.Email, u.Phone, u.RoleId, r.RoleName AS Role,
+                       u.HasUpdates, u.IsActive, u.CreatedAt, u.PasswordHash
+                FROM Users u
+                INNER JOIN Roles r ON u.RoleId = r.RoleId
+                WHERE u.Email = @Email AND u.IsActive = TRUE;";
 
             using var command = new MySqlCommand(sql, connection);
             command.Parameters.AddWithValue("@Email", email);
@@ -106,7 +122,7 @@ namespace DAL
             using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
 
-            using var command = new MySqlCommand(SelectUsers + " WHERE UserId = @UserId;", connection);
+            using var command = new MySqlCommand(SelectUsers + " WHERE u.UserId = @UserId;", connection);
             command.Parameters.AddWithValue("@UserId", userId);
 
             using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
@@ -118,7 +134,7 @@ namespace DAL
             using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
 
-            using var command = new MySqlCommand(SelectUsers + " ORDER BY UserId;", connection);
+            using var command = new MySqlCommand(SelectUsers + " ORDER BY u.UserId;", connection);
 
             var users = new List<User>();
             using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
@@ -131,6 +147,7 @@ namespace DAL
 
         /// <summary>
         /// כמה משתמשים יש בכל תפקיד (GROUP BY). שימושי לדף הניהול.
+        /// LEFT JOIN מתחיל מטבלת Roles, ולכן גם תפקיד בלי אף משתמש מופיע, עם 0.
         /// </summary>
         public async Task<Dictionary<string, int>> CountUsersByRoleAsync()
         {
@@ -138,13 +155,17 @@ namespace DAL
             await connection.OpenAsync();
 
             using var command = new MySqlCommand(
-                "SELECT Role, COUNT(*) AS Total FROM Users GROUP BY Role ORDER BY Role;", connection);
+                @"SELECT r.RoleName, COUNT(u.UserId) AS Total
+                  FROM Roles r
+                  LEFT JOIN Users u ON u.RoleId = r.RoleId
+                  GROUP BY r.RoleId, r.RoleName
+                  ORDER BY r.RoleName;", connection);
 
             var result = new Dictionary<string, int>();
             using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                result[reader.GetString("Role")] = Convert.ToInt32(reader["Total"]);
+                result[reader.GetString("RoleName")] = Convert.ToInt32(reader["Total"]);
             }
             return result;
         }
@@ -152,10 +173,17 @@ namespace DAL
         // ---------- עדכונים ----------
         // כל פעולת עדכון מחזירה true אם עודכנה שורה, ו-false אם המשתמש לא נמצא.
 
+        /// <summary>
+        /// שינוי תפקיד לפי שם התפקיד החדש. מזהה התפקיד נלקח מטבלת Roles בתוך אותה שאילתה.
+        /// מחזירה false אם המשתמש או התפקיד לא נמצאו.
+        /// </summary>
         public async Task<bool> UpdateRoleAsync(int userId, string role)
         {
-            return await ExecuteUpdateAsync(
-                "UPDATE Users SET Role = @Value WHERE UserId = @UserId;", userId, role);
+            return await ExecuteUpdateAsync(@"
+                UPDATE Users u
+                INNER JOIN Roles r ON r.RoleName = @Value
+                SET u.RoleId = r.RoleId
+                WHERE u.UserId = @UserId;", userId, role);
         }
 
         public async Task<bool> UpdatePasswordAsync(int userId, string newPassword)
@@ -243,6 +271,7 @@ namespace DAL
                 reader.GetString("FullName"),
                 reader.GetString("Email"),
                 reader.IsDBNull(phoneIndex) ? null : reader.GetString(phoneIndex),
+                reader.GetInt32("RoleId"),
                 reader.GetString("Role"),
                 reader.GetBoolean("HasUpdates"),
                 reader.GetBoolean("IsActive"),

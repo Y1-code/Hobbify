@@ -12,6 +12,11 @@ namespace Model
         public string FullName { get; set; } = "";
         public string Email { get; set; } = "";
         public string? Phone { get; set; }
+        // המפתח הזר לטבלת Roles
+        public int RoleId { get; set; }
+
+        // שם התפקיד (Parent / Manager / SuperAdmin). נשלף מטבלת Roles בעזרת JOIN,
+        // ולכן שאר הקוד ממשיך לעבוד עם שם התפקיד כמו קודם.
         public string Role { get; set; } = Roles.Parent;
         public bool HasUpdates { get; set; }
         public bool IsActive { get; set; } = true;
@@ -25,7 +30,7 @@ namespace Model
         }
 
         /// <summary>
-        /// משתמש חדש שעוד לא נשמר. המזהה, תאריך היצירה והדגלים HasUpdates ו-IsActive נקבעים בבסיס הנתונים.
+        /// משתמש חדש שעוד לא נשמר. המזהה, RoleId, תאריך היצירה והדגלים HasUpdates ו-IsActive נקבעים בבסיס הנתונים.
         /// </summary>
         public User(string fullName, string email, string? phone, string role = Roles.Parent)
         {
@@ -39,12 +44,13 @@ namespace Model
         /// משתמש שנקרא מהטבלה, עם כל העמודות. את המזהה מעבירים למחלקת הבסיס.
         /// </summary>
         public User(int id, string fullName, string email, string? phone,
-                    string role, bool hasUpdates, bool isActive, DateTime createdAt)
+                    int roleId, string role, bool hasUpdates, bool isActive, DateTime createdAt)
             : base(id)
         {
             FullName = fullName;
             Email = email;
             Phone = phone;
+            RoleId = roleId;
             Role = role;
             HasUpdates = hasUpdates;
             IsActive = isActive;

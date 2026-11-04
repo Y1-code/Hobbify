@@ -21,6 +21,7 @@ namespace DAL
 
             string dbConnectionString = GetDatabaseConnectionString(serverConnectionString);
             await CreateTablesAsync(dbConnectionString);
+            await SeedRolesAsync(dbConnectionString);      // לפני SeedUsersAsync: לכל משתמש חייב להיות תפקיד קיים
             await SeedCategoriesAsync(dbConnectionString);
             await SeedUsersAsync(dbConnectionString);
         }
@@ -63,7 +64,16 @@ namespace DAL
         {
             string[] tables =
             {
+                // 0. Roles - התפקידים במערכת. נוצרת ראשונה כי Users מצביעה עליה.
+                // התפקיד נשמר כשורה בטבלה משלו ולא כטקסט בתוך Users, כדי שאי אפשר יהיה
+                // לכתוב תפקיד שלא קיים, ושינוי של שם תפקיד יהיה במקום אחד.
+                @"CREATE TABLE IF NOT EXISTS Roles (
+                    RoleId   INT AUTO_INCREMENT PRIMARY KEY,
+                    RoleName VARCHAR(20) NOT NULL UNIQUE
+                );",
+
                 // 1. Users - כל מי שמתחבר: הורה, מנהל מתנס או מנהל מערכת.
+                // RoleId הוא מפתח זר לטבלת Roles. RESTRICT: אי אפשר למחוק תפקיד שיש לו משתמשים.
                 // HasUpdates מדליק את הפעמון כשמנהל מתנס מטפל בבקשה של ההורה.
                 // IsActive: במערכת לא מוחקים משתמשים. משתמש חסום מסומן כלא פעיל,
                 // לא יכול להתחבר, וכל ההיסטוריה שלו (הרשמות, מתנס) נשמרת.
@@ -73,11 +83,12 @@ namespace DAL
                     Email        VARCHAR(150) NOT NULL UNIQUE,
                     Phone        VARCHAR(20)  NULL,
                     PasswordHash VARCHAR(255) NOT NULL,
-                    Role         VARCHAR(20)  NOT NULL DEFAULT 'Parent',
+                    RoleId       INT          NOT NULL,
                     HasUpdates   BOOLEAN      NOT NULL DEFAULT FALSE,
                     IsActive     BOOLEAN      NOT NULL DEFAULT TRUE,
                     CreatedAt    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    CONSTRAINT CHK_Users_Role CHECK (Role IN ('Parent', 'Manager', 'SuperAdmin'))
+                    CONSTRAINT FK_Users_Role FOREIGN KEY (RoleId)
+                        REFERENCES Roles(RoleId) ON DELETE RESTRICT ON UPDATE CASCADE
                 );",
 
                 // 2. Cities - עיר, תמונת המפה שלה ומיקומה במפת ישראל (באחוזים).
@@ -214,6 +225,35 @@ namespace DAL
         // ---------- שלב 3: נתונים התחלתיים ----------
         // כל הזנה רצה רק אם הטבלה שלה ריקה, כך שאין כפילויות בהרצות חוזרות.
         // נתוני דוגמה נוספים (ערים, מתנסים, חוגים) יתווספו בשלבים הבאים.
+        // הסדר: Roles לפני Users, כי כל משתמש מצביע על תפקיד.
+
+        /// <summary>
+        /// שלושת התפקידים הקבועים של המערכת, רק אם טבלת Roles ריקה.
+        /// השמות כאן חייבים להיות זהים לקבועים במחלקה Roles שב-Model.
+        /// </summary>
+        private static async Task SeedRolesAsync(string dbConnectionString)
+        {
+            using var connection = new MySqlConnection(dbConnectionString);
+            await connection.OpenAsync();
+
+            using (var countCommand = new MySqlCommand("SELECT COUNT(*) FROM Roles;", connection))
+            {
+                long count = Convert.ToInt64(await countCommand.ExecuteScalarAsync());
+                if (count > 0)
+                {
+                    return;
+                }
+            }
+
+            string sql = @"
+                INSERT INTO Roles (RoleName) VALUES
+                ('Parent'),
+                ('Manager'),
+                ('SuperAdmin');";
+
+            using var insertCommand = new MySqlCommand(sql, connection);
+            await insertCommand.ExecuteNonQueryAsync();
+        }
 
         private static async Task SeedCategoriesAsync(string dbConnectionString)
         {
@@ -277,8 +317,9 @@ namespace DAL
             };
 
             string sql = @"
-                INSERT INTO Users (FullName, Email, Phone, PasswordHash, Role)
-                VALUES (@FullName, @Email, @Phone, @PasswordHash, @Role);";
+                INSERT INTO Users (FullName, Email, Phone, PasswordHash, RoleId)
+                VALUES (@FullName, @Email, @Phone, @PasswordHash,
+                        (SELECT RoleId FROM Roles WHERE RoleName = @Role));";
 
             foreach (var user in users)
             {

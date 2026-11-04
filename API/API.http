@@ -1,8 +1,13 @@
-
 # בדיקות ה-API של המשתמשים.
 # להרצה ב-VS Code צריך את ההרחבה REST Client, ואז לוחצים "Send Request" מעל כל בקשה.
 # אם ה-API שלך עולה בפורט אחר, שנה את המספר בשורה הבאה.
 @API_HostAddress = http://localhost:5208
+
+# סדר ההרצה של בדיקות משתמש הבדיקה:
+# קודם "הרשמה של הורה בדיקה" (היא שומרת את המזהה החדש), ואחריה העדכונים, ובסוף המחיקה.
+# המזהה לא נכתב ידנית: כל הרשמה מקבלת מספר חדש, ולכן הקובץ לוקח אותו מהתשובה של ההרשמה.
+# אם ההרשמה מחזירה 409, נשאר משתמש בדיקה מהרצה קודמת. מוחקים אותו ב-Workbench:
+#   DELETE FROM HobbifyDB.Users WHERE Email IN ('test.parent@example.com', 'new.test.parent@example.com');
 
 ###
 
@@ -43,6 +48,7 @@ GET {{API_HostAddress}}/api/users/count-by-role
 # ===== הרשמה והתחברות =====
 
 # הרשמה של הורה בדיקה (צפוי: 201 והמשתמש החדש, עם תפקיד Parent)
+# @name register
 POST {{API_HostAddress}}/api/users/register
 Content-Type: application/json
 
@@ -52,6 +58,11 @@ Content-Type: application/json
   "phone": "050-9999999",
   "password": "Test123"
 }
+
+###
+
+# המזהה של משתמש הבדיקה, מתוך התשובה של ההרשמה שלמעלה
+@testUserId = {{register.response.body.$.id}}
 
 ###
 
@@ -102,20 +113,20 @@ Content-Type: application/json
 ###
 
 # ===== עדכונים על משתמש הבדיקה =====
-# לפני ההרצה, להחליף את 11 במזהה שהוחזר בהרשמה של הורה הבדיקה.
+# כל הבקשות כאן משתמשות ב-{{testUserId}}, והוא נקבע מההרשמה של הורה הבדיקה.
 
 # שינוי תפקיד (צפוי: 204)
-PUT {{API_HostAddress}}/api/users/11/role?role=Manager
+PUT {{API_HostAddress}}/api/users/{{testUserId}}/role?role=Manager
 
 ###
 
 # שינוי לתפקיד שלא קיים (צפוי: 400)
-PUT {{API_HostAddress}}/api/users/11/role?role=King
+PUT {{API_HostAddress}}/api/users/{{testUserId}}/role?role=King
 
 ###
 
 # עדכון פרטים (צפוי: 204)
-PUT {{API_HostAddress}}/api/users/11/details
+PUT {{API_HostAddress}}/api/users/{{testUserId}}/details
 Content-Type: application/json
 
 {
@@ -126,7 +137,7 @@ Content-Type: application/json
 ###
 
 # עדכון סיסמה (צפוי: 204, ואחריו התחברות עם NewPass123 עובדת)
-PUT {{API_HostAddress}}/api/users/11/password
+PUT {{API_HostAddress}}/api/users/{{testUserId}}/password
 Content-Type: application/json
 
 "NewPass123"
@@ -134,7 +145,7 @@ Content-Type: application/json
 ###
 
 # עדכון אימייל (צפוי: 204)
-PUT {{API_HostAddress}}/api/users/11/email
+PUT {{API_HostAddress}}/api/users/{{testUserId}}/email
 Content-Type: application/json
 
 "new.test.parent@example.com"
@@ -142,7 +153,7 @@ Content-Type: application/json
 ###
 
 # עדכון לאימייל של משתמש אחר (צפוי: 409)
-PUT {{API_HostAddress}}/api/users/11/email
+PUT {{API_HostAddress}}/api/users/{{testUserId}}/email
 Content-Type: application/json
 
 "dana@example.com"
@@ -150,17 +161,17 @@ Content-Type: application/json
 ###
 
 # הדלקת הפעמון (צפוי: 204, ואז GET על המשתמש מראה hasUpdates: true)
-PUT {{API_HostAddress}}/api/users/11/has-updates?value=true
+PUT {{API_HostAddress}}/api/users/{{testUserId}}/has-updates?value=true
 
 ###
 
 # כיבוי הפעמון (צפוי: 204)
-PUT {{API_HostAddress}}/api/users/11/has-updates?value=false
+PUT {{API_HostAddress}}/api/users/{{testUserId}}/has-updates?value=false
 
 ###
 
 # חסימת משתמש הבדיקה (צפוי: 204)
-PUT {{API_HostAddress}}/api/users/11/active?value=false
+PUT {{API_HostAddress}}/api/users/{{testUserId}}/active?value=false
 
 ###
 
@@ -176,13 +187,16 @@ Content-Type: application/json
 ###
 
 # החזרה לפעילות (צפוי: 204, ואחריו ההתחברות שלמעלה מחזירה 200)
-PUT {{API_HostAddress}}/api/users/11/active?value=true
+PUT {{API_HostAddress}}/api/users/{{testUserId}}/active?value=true
+
+###
+
+# משתמש הבדיקה אחרי כל העדכונים (צפוי: שם, אימייל ותפקיד Manager מהעדכונים למעלה)
+GET {{API_HostAddress}}/api/users/{{testUserId}}
 
 ###
 
 # מחיקת משתמש הבדיקה (צפוי: 204)
-DELETE {{API_HostAddress}}/api/users/14
+DELETE {{API_HostAddress}}/api/users/{{testUserId}}
 
 ###
-
-
