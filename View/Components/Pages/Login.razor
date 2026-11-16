@@ -1,6 +1,5 @@
 @page "/login"
 @using System.Net
-@using Model
 @inject HttpClient Http
 @inject UserSession Session
 @inject NavigationManager Navigation
@@ -118,7 +117,8 @@
             isBusy = false;
         }
 
-        // מעבר לדף הבית, בתוך אותו חיבור. השירות נשאר עם המשתמש
-        Navigation.NavigateTo("");
+        // שונה בשלב 8: במקום לעבור תמיד לדף הבית, כל משתמש עובר לדף הראשי של התפקיד שלו.
+        // המעבר נעשה בתוך אותו חיבור, ולכן השירות נשאר עם המשתמש
+        Navigation.NavigateTo(Session.HomePage);
     }
 }

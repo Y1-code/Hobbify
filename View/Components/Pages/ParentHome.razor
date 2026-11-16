@@ -1,0 +1,31 @@
+@page "/parent"
+@inherits ProtectedPage
+
+@* נוסף בשלב 8. הדף הראשי של הורה. דף מוגן: רק משתמש בתפקיד Parent רואה אותו.
+   בשלב הזה יש בו כותרת בלבד. את העיצוב נוסיף בשלב 9. *@
+
+<PageTitle>האזור שלי · Hobbify</PageTitle>
+
+@* התוכן מוצג רק אם התפקיד של המשתמש המחובר מתאים לדף. IsAllowed מגיעה מ-ProtectedPage *@
+@if (IsAllowed)
+{
+    <main>
+        <div class="hb-container">
+            <div class="page-head">
+                <div>
+                    <h1>האזור שלי</h1>
+                    <p>הדף הראשי של הורה</p>
+                </div>
+            </div>
+        </div>
+    </main>
+}
+
+@code {
+    // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
+    // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
+    protected override string AllowedRole
+    {
+        get { return Roles.Parent; }
+    }
+}

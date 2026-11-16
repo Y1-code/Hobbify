@@ -27,6 +27,28 @@ namespace View.Services
             get { return UserId > 0; }
         }
 
+        // נוסף בשלב 8: הכתובת של הדף הראשי של המשתמש, לפי התפקיד שלו.
+        // דף ההתחברות משתמש בה כדי להעביר כל משתמש לדף הראשי שלו.
+        public string HomePage
+        {
+            get
+            {
+                if (Role == Roles.SuperAdmin)
+                {
+                    return "admin";
+                }
+                if (Role == Roles.Manager)
+                {
+                    return "manager";
+                }
+                if (Role == Roles.Parent)
+                {
+                    return "parent";
+                }
+                return ""; // אורח: דף הבית
+            }
+        }
+
         // אירוע שמודיע שהמשתמש המחובר השתנה. הסרגל העליון נרשם אליו כדי להתעדכן.
         public event Action? OnChange;
 

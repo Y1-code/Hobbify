@@ -1,0 +1,31 @@
+@page "/admin"
+@inherits ProtectedPage
+
+@* נוסף בשלב 8. הדף הראשי של מנהל המערכת. דף מוגן: רק משתמש בתפקיד SuperAdmin רואה אותו.
+   בשלב הזה יש בו כותרת בלבד. את העיצוב נוסיף בשלב 9. *@
+
+<PageTitle>ניהול המערכת · Hobbify</PageTitle>
+
+@* התוכן מוצג רק אם התפקיד של המשתמש המחובר מתאים לדף. IsAllowed מגיעה מ-ProtectedPage *@
+@if (IsAllowed)
+{
+    <main>
+        <div class="hb-container">
+            <div class="page-head">
+                <div>
+                    <h1>לוח ניהול של מנהל המערכת</h1>
+                    <p>הדף הראשי של מנהל המערכת</p>
+                </div>
+            </div>
+        </div>
+    </main>
+}
+
+@code {
+    // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
+    // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
+    protected override string AllowedRole
+    {
+        get { return Roles.SuperAdmin; }
+    }
+}

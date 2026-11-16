@@ -1,0 +1,48 @@
+@page "/pages"
+
+@* נוסף בשלב 8. מפת האתר: כל הדפים, מחולקים לפי התפקיד שמורשה להיכנס אליהם.
+   הדף פתוח לכולם, והוא נוח לבדיקת ההרשאות: לוחצים על דף של תפקיד אחר, ורואים שההגנה עובדת.
+   (הקלדת כתובת בשורת הכתובת טוענת את האתר מחדש, פותחת חיבור חדש, והמשתמש כבר לא מחובר.
+   לחיצה על קישור בתוך האתר נשארת באותו חיבור.) *@
+
+<PageTitle>מפת האתר · Hobbify</PageTitle>
+
+<main>
+    <div class="hb-container">
+        <div class="page-head">
+            <div>
+                <h1>מפת האתר</h1>
+                <p>כל הדפים, לפי התפקיד שמורשה להיכנס אליהם</p>
+            </div>
+        </div>
+
+        <div class="row g-4 sitemap">
+            <div class="col-12 col-md-6">
+                <section class="hb-card sitemap-card">
+                    <h3>דפים לכולם</h3>
+                    <a class="hb-page-link" href=""><span>דף הבית</span><Icon Name="chev-left" /></a>
+                    <a class="hb-page-link" href="login"><span>התחברות</span><Icon Name="chev-left" /></a>
+                    <a class="hb-page-link" href="register"><span>הרשמה</span><Icon Name="chev-left" /></a>
+                </section>
+            </div>
+            <div class="col-12 col-md-6">
+                <section class="hb-card sitemap-card">
+                    <h3>הורה</h3>
+                    <a class="hb-page-link" href="parent"><span>האזור שלי</span><Icon Name="chev-left" /></a>
+                </section>
+            </div>
+            <div class="col-12 col-md-6">
+                <section class="hb-card sitemap-card">
+                    <h3>מנהל מתנס</h3>
+                    <a class="hb-page-link" href="manager"><span>לוח ניהול</span><Icon Name="chev-left" /></a>
+                </section>
+            </div>
+            <div class="col-12 col-md-6">
+                <section class="hb-card sitemap-card">
+                    <h3>מנהל המערכת</h3>
+                    <a class="hb-page-link" href="admin"><span>לוח ניהול</span><Icon Name="chev-left" /></a>
+                </section>
+            </div>
+        </div>
+    </div>
+</main>

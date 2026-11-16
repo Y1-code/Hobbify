@@ -5,18 +5,36 @@
 
 @* המבנה המשותף של כל הדפים: סרגל עליון, ומתחתיו הדף עצמו (@Body).
    מה שכתוב כאן מופיע בכל דף באתר.
-   נוסף בשלב 6: הסרגל מציג מי מחובר, ויש בו כפתור התנתקות. *@
+   נוסף בשלב 6: הסרגל מציג מי מחובר, ויש בו כפתור התנתקות.
+   נוסף בשלב 8: התפריט משתנה לפי התפקיד, ובתחתית כל דף יש קישור למפת האתר. *@
 
 <header class="hb-nav">
     <div class="hb-container nav-inner">
         <div class="nav-start">
             <Logo />
 
-            @* NavLink הוא קישור שמסמן את עצמו במחלקה active כשנמצאים בדף שלו *@
+            @* נוסף בשלב 8: התפריט מציג רק את האפשרויות שמתאימות לתפקיד של המשתמש המחובר.
+               NavLink הוא קישור שמסמן את עצמו במחלקה active כשנמצאים בדף שלו *@
             <nav class="nav-links" aria-label="תפריט ראשי">
-                <NavLink href="" Match="NavLinkMatch.All">דף הבית</NavLink>
-                <a href="#cities">ערים</a>
-                <NavLink href="soon">הצטרפות כמתנס</NavLink>
+                @if (Session.Role == Roles.Parent)
+                {
+                    <NavLink href="" Match="NavLinkMatch.All">דף הבית</NavLink>
+                    <NavLink href="parent" Match="NavLinkMatch.All">האזור שלי</NavLink>
+                }
+                else if (Session.Role == Roles.Manager)
+                {
+                    <NavLink href="manager" Match="NavLinkMatch.All">לוח ניהול</NavLink>
+                }
+                else if (Session.Role == Roles.SuperAdmin)
+                {
+                    <NavLink href="admin" Match="NavLinkMatch.All">לוח ניהול</NavLink>
+                }
+                else
+                {
+                    <NavLink href="" Match="NavLinkMatch.All">דף הבית</NavLink>
+                    <a href="#cities">ערים</a>
+                    <NavLink href="soon">הצטרפות כמתנס</NavLink>
+                }
             </nav>
         </div>
 
@@ -37,6 +55,13 @@
 </header>
 
 @Body
+
+<footer class="site-footer">
+    <div class="hb-container">
+        <span>Hobbify · פרויקט גמר בהנדסת תוכנה</span>
+        <a href="pages">מפת האתר</a>
+    </div>
+</footer>
 
 <div id="blazor-error-ui" data-nosnippet>
     אירעה שגיאה לא צפויה.

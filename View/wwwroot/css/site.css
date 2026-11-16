@@ -941,3 +941,18 @@ main > .hb-container > :nth-child(n+5), .auth-card > :nth-child(n+5) { animation
 
 /* הברכה בסרגל העליון: "שלום, אורח" או "שלום, [שם]" */
 .user-chip { font-size: 14px; font-weight: 500; color: var(--text-2); white-space: nowrap; }
+
+/* שורה תחתונה של האתר, עם קישור למפת האתר */
+.site-footer { border-top: 1px solid var(--border-subtle); padding: 20px 0; font-size: 13px; color: var(--text-2); }
+.site-footer .hb-container { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+/* דף "אין הרשאה": האייקון באדום */
+.no-access-tile { background: var(--red-bg); color: var(--red); font-size: 28px; }
+.app-tile { font-size: 28px; color: var(--accent); }
+
+/* כרטיס במפת האתר */
+.sitemap-card { padding: 12px; height: 100%; }
+.sitemap-card h3 { padding: 12px 18px 4px; }
+
+/* Blazor מעביר את הפוקוס לכותרת הדף אחרי מעבר בין דפים (לטובת קוראי מסך). בלי מסגרת סביב הכותרת */
+h1:focus { outline: none; }
