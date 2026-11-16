@@ -1,18 +1,37 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject UserSession Session
+@inject NavigationManager Navigation
 
-<header class="app-header">
-    <div class="inner">
-        <Logo />
+@* המבנה המשותף של כל הדפים: סרגל עליון, ומתחתיו הדף עצמו (@Body).
+   מה שכתוב כאן מופיע בכל דף באתר.
+   נוסף בשלב 6: הסרגל מציג מי מחובר, ויש בו כפתור התנתקות. *@
 
-        <nav class="nav" aria-label="ניווט ראשי">
-            <NavLink href="" Match="NavLinkMatch.All">חיפוש חוגים</NavLink>
-        </nav>
+<header class="hb-nav">
+    <div class="hb-container nav-inner">
+        <div class="nav-start">
+            <Logo />
 
-        <div class="header-tools">
-            <div class="guest-actions">
-                <a class="btn btn-on-navy btn-sm" href="register">הרשמה</a>
-                <a class="btn btn-light btn-sm" href="login">התחברות</a>
-            </div>
+            @* NavLink הוא קישור שמסמן את עצמו במחלקה active כשנמצאים בדף שלו *@
+            <nav class="nav-links" aria-label="תפריט ראשי">
+                <NavLink href="" Match="NavLinkMatch.All">דף הבית</NavLink>
+                <a href="#cities">ערים</a>
+                <NavLink href="soon">הצטרפות כמתנס</NavLink>
+            </nav>
+        </div>
+
+        <div class="nav-end">
+            @if (Session.IsLoggedIn)
+            {
+                <span class="user-chip">שלום, @Session.FullName</span>
+                <button class="hb-btn hb-btn-secondary hb-btn-sm" type="button" @onclick="Logout">התנתקות</button>
+            }
+            else
+            {
+                <span class="user-chip">שלום, אורח</span>
+                <a class="hb-btn hb-btn-plain hb-btn-sm" href="register">הרשמה</a>
+                <a class="hb-btn hb-btn-primary hb-btn-sm" href="login">התחברות</a>
+            }
         </div>
     </div>
 </header>
@@ -24,3 +43,30 @@
     <a href="." class="reload">רענון</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    // נרשמים לאירוע של השירות: "כשהמשתמש המחובר משתנה, תפעיל את OnSessionChanged"
+    protected override void OnInitialized()
+    {
+        Session.OnChange += OnSessionChanged;
+    }
+
+    // מבקשת מהסרגל לצייר את עצמו מחדש.
+    // InvokeAsync מוודאת שהעדכון רץ בצורה בטוחה, גם כשהאירוע הופעל מתוך רכיב אחר (דף ההתחברות)
+    private void OnSessionChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void Logout()
+    {
+        Session.Logout();
+        Navigation.NavigateTo("");
+    }
+
+    // כשהרכיב נסגר, מבטלים את ההרשמה לאירוע. אחרת השירות ימשיך לקרוא לרכיב שכבר לא קיים
+    public void Dispose()
+    {
+        Session.OnChange -= OnSessionChanged;
+    }
+}

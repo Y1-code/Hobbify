@@ -18,24 +18,23 @@
 
 <PageTitle>הרשמה · Hobbify</PageTitle>
 
-<main class="auth">
-    <div class="sheet">
-        <div class="why">
-            <Icon Name="info" />
-            <span>החשבון מיועד להורים. אחרי ההרשמה אפשר להירשם לחוגים, לשמור מועדפים ולדבר עם עוזר החוגים.</span>
+<main class="auth-bg">
+    <div class="hb-card auth-card">
+        <span class="app-tile"><img src="@Assets["images/logo.svg"]" alt="" width="40" height="40" /></span>
+
+        <div class="center-text">
+            <h1 style="font-size:32px">יצירת חשבון הורה</h1>
+            <p class="muted" style="margin-top:6px">חשבון אחד לכל הילדים במשפחה.</p>
         </div>
 
-        <nav class="tabs" aria-label="התחברות או הרשמה">
-            <a href="login">התחברות</a>
-            <a href="register" aria-current="page">חשבון חדש להורה</a>
-        </nav>
-
         @* novalidate: הדפדפן לא בודק את השדות בעצמו. הבדיקה נעשית בקוד שבתחתית הדף *@
-        <form class="sheet-pad stack" novalidate>
+        <form class="stack" novalidate>
             @* כל שדה מקושר למשתנה בקוד עם @bind-Value *@
-            <Field Id="reg-name" Label="שם מלא" Required="true" AutoComplete="name" @bind-Value="fullName" />
-            <Field Id="reg-email" Label="אימייל" Type="email" Dir="ltr" Required="true" AutoComplete="email" @bind-Value="email" />
-            <Field Id="reg-phone" Label="טלפון" Type="tel" Dir="ltr" AutoComplete="tel"
+            <Field Id="reg-name" Label="שם מלא" Required="true" AutoComplete="name"
+                   Placeholder="לדוגמה: דנה כהן" @bind-Value="fullName" />
+            <Field Id="reg-email" Label="אימייל" Type="email" Dir="ltr" Required="true" AutoComplete="email"
+                   Placeholder="name@example.com" @bind-Value="email" />
+            <Field Id="reg-phone" Label="טלפון" Type="tel" Dir="ltr" AutoComplete="tel" Placeholder="050-0000000"
                    Hint="המתנס ישתמש בו כדי ליצור קשר לגבי ההרשמה" @bind-Value="phone" />
             <Field Id="reg-password" Label="סיסמה" Type="password" Dir="ltr" Required="true"
                    AutoComplete="new-password" Hint="לפחות 6 תווים" @bind-Value="password" />
@@ -45,8 +44,8 @@
             @* הודעת שגיאה. מוצגת רק כשיש שגיאה *@
             @if (errorMessage != null)
             {
-                <div class="notice notice-bad" role="alert">
-                    <Icon Name="circle-alert" />
+                <div class="banner warn" role="alert">
+                    <Icon Name="x" />
                     <span>@errorMessage</span>
                 </div>
             }
@@ -54,22 +53,20 @@
             @* הודעת הצלחה, עם ספירה לאחור עד המעבר לדף ההתחברות *@
             @if (isRegistered)
             {
-                <div class="notice notice-ok" role="status">
-                    <Icon Name="circle-check" />
+                <div class="banner ok" role="status">
+                    <Icon Name="check" />
                     <span><b>ההרשמה הצליחה!</b> עוברים לדף ההתחברות בעוד @secondsLeft שניות.</span>
                 </div>
             }
 
             @* לחיצה מפעילה את RegisterAsync. בזמן השליחה ואחרי הצלחה הכפתור מושבת, כדי שלא ילחצו פעמיים *@
-            <button class="btn btn-primary btn-lg btn-block" type="button"
+            <button class="hb-btn hb-btn-primary hb-btn-lg hb-btn-block" type="button"
                     disabled="@(isBusy || isRegistered)" @onclick="RegisterAsync">
                 @(isBusy ? "בודקים..." : "יצירת חשבון")
             </button>
         </form>
 
-        <div class="foot">
-            כבר יש לכם חשבון? <a href="login">להתחברות</a>
-        </div>
+        <p class="center-text muted small">כבר יש לכם חשבון? <a href="login">התחברות</a></p>
     </div>
 </main>
 

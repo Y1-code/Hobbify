@@ -10,10 +10,10 @@
     @* 1. Bootstrap בגרסת RTL (מימין לשמאל) *@
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.rtl.min.css"]" />
 
-    @* 2. הפונט Rubik מ-Google Fonts *@
+    @* 2. הפונטים מ-Google Fonts: Heebo לטקסט, Fredoka ללוגו *@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Heebo:wght@400;500;600;700;800&display=swap" />
 
     @* 3. העיצוב שלנו, אחרון כדי שיגבר על Bootstrap *@
     <link rel="stylesheet" href="@Assets["css/site.css"]" />
@@ -22,13 +22,23 @@
     <ImportMap />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="icon" type="image/png" href="favicon.png" /> 
-    <HeadOutlet />
+    <HeadOutlet @rendermode="pageRenderMode" />
 </head>
 
 <body>
-    <Routes />
+    @* נוסף בשלב 6: כל האתר רץ בשרת על חיבור אחד לכל לשונית, והמעבר בין דפים נעשה בתוך החיבור הזה.
+       לכן השירות UserSession נשאר אותו עצם בכל הדפים. בלי זה, כל דף היה מקבל שירות חדש וריק,
+       והמשתמש היה "נשכח" בכל מעבר בין דפים. *@
+    <Routes @rendermode="pageRenderMode" />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 
 </html>
+
+@code {
+    // נוסף בשלב 6: מצב ההפעלה של כל האתר.
+    // InteractiveServer: הדפים רצים בשרת ומגיבים ללחיצות.
+    // prerender: false: הדף מוצג רק אחרי שהחיבור לשרת מוכן, כמו בדף ההרשמה בשלב 5.
+    private static readonly IComponentRenderMode pageRenderMode = new InteractiveServerRenderMode(prerender: false);
+}

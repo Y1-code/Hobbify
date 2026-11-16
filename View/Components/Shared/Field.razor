@@ -13,7 +13,7 @@
 
     @* התיבה מציגה את הערך שקיבלה מהדף. כשהמשתמש משנה אותו ויוצא מהשדה, הערך החדש נשלח בחזרה לדף *@
     <input class="input" id="@Id" type="@Type" dir="@Dir" autocomplete="@AutoComplete"
-           value="@Value" @onchange="OnValueChanged" />
+           placeholder="@Placeholder" value="@Value" @onchange="OnValueChanged" />
 
     @if (!string.IsNullOrEmpty(Hint))
     {
@@ -36,6 +36,9 @@
 
     // הסבר קטן מתחת לתיבה (לא חובה)
     [Parameter] public string? Hint { get; set; }
+
+    // טקסט אפור שמוצג בתיבה כשהיא ריקה (לא חובה)
+    [Parameter] public string? Placeholder { get; set; }
 
     // האם להציג כוכבית אדומה של שדה חובה
     [Parameter] public bool Required { get; set; }

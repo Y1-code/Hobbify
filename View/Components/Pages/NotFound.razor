@@ -1,5 +1,15 @@
-﻿@page "/not-found"
+@page "/not-found"
 @layout MainLayout
 
-<h3>Not Found</h3>
-<p>Sorry, the content you are looking for does not exist.</p>
+@* הדף שמוצג כשמקלידים כתובת שלא קיימת באתר *@
+
+<PageTitle>הדף לא נמצא · Hobbify</PageTitle>
+
+<main class="auth-bg">
+    <div class="hb-card auth-card center-text">
+        <span class="app-tile"><Icon Name="search" /></span>
+        <h1 style="font-size:32px">הדף לא נמצא</h1>
+        <p class="muted">הכתובת שהקלדתם לא קיימת באתר.</p>
+        <a class="hb-btn hb-btn-primary hb-btn-lg hb-btn-block" href="">חזרה לדף הבית</a>
+    </div>
+</main>

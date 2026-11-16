@@ -1,30 +1,124 @@
 @page "/login"
+@using System.Net
+@using Model
+@inject HttpClient Http
+@inject UserSession Session
+@inject NavigationManager Navigation
+
+@* דף ההתחברות. הורים, מנהלי מתנסים ומנהלי מערכת מתחברים מאותו דף.
+   נוסף בשלב 4 (עיצוב), ובשלב 6 נוספה ההפעלה.
+
+   הדף מבקש שלושה שירותים:
+   Http - שולח בקשות ל-API.
+   Session - השירות שזוכר את המשתמש המחובר.
+   Navigation - מעבר לדף אחר.
+
+   הדף לא ניגש לבסיס הנתונים. הוא שולח את האימייל והסיסמה ל-API (POST api/users/login),
+   הבקר UsersController מפעיל את UserDB.CheckLoginAsync, ורק שם נבדקת הסיסמה מול הגיבוב השמור. *@
 
 <PageTitle>התחברות · Hobbify</PageTitle>
 
-<main class="auth">
-    <div class="sheet">
-        <div class="why">
-            <Icon Name="info" />
-            <span>כדי להירשם לחוג, לשמור מועדפים, לדרג ולדבר עם עוזר החוגים צריך חשבון. החיפוש פתוח לכולם.</span>
+<main class="auth-bg">
+    <div class="hb-card auth-card">
+        <span class="app-tile"><img src="@Assets["images/logo.svg"]" alt="" width="40" height="40" /></span>
+
+        <div class="center-text">
+            <h1 style="font-size:32px">ברוכים השבים</h1>
+            <p class="muted" style="margin-top:6px">התחברו כדי להירשם לחוגים ולעקוב אחרי הבקשות.</p>
         </div>
 
-        @* הלשוניות הן קישורים לשני דפים נפרדים: /login ו-/register *@
-        <nav class="tabs" aria-label="התחברות או הרשמה">
-            <a href="login" aria-current="page">התחברות</a>
-            <a href="register">חשבון חדש להורה</a>
-        </nav>
+        <form class="stack" novalidate>
+            <Field Id="login-email" Label="אימייל" Type="email" Dir="ltr" AutoComplete="email"
+                   Placeholder="name@example.com" @bind-Value="email" />
+            <Field Id="login-password" Label="סיסמה" Type="password" Dir="ltr" AutoComplete="current-password"
+                   @bind-Value="password" />
 
-        <form class="sheet-pad stack">
-            <Field Id="login-email" Label="אימייל" Type="email" Dir="ltr" AutoComplete="email" />
-            <Field Id="login-password" Label="סיסמה" Type="password" Dir="ltr" AutoComplete="current-password" />
+            @* הודעת שגיאה. מוצגת רק כשיש שגיאה *@
+            @if (errorMessage != null)
+            {
+                <div class="banner warn" role="alert">
+                    <Icon Name="x" />
+                    <span>@errorMessage</span>
+                </div>
+            }
 
-            @* type="button": בשלב הזה הכפתור לא שולח כלום. נחבר אותו ל-API בשלב הבא. *@
-            <button class="btn btn-primary btn-lg btn-block" type="button">התחברות</button>
+            @* לחיצה מפעילה את LoginAsync. בזמן הבדיקה הכפתור מושבת, כדי שלא ילחצו פעמיים *@
+            <button class="hb-btn hb-btn-primary hb-btn-lg hb-btn-block" type="button"
+                    disabled="@isBusy" @onclick="LoginAsync">
+                @(isBusy ? "בודקים..." : "התחברות")
+            </button>
         </form>
 
-        <div class="foot">
-            עוד אין לכם חשבון? <a href="register">יצירת חשבון חדש</a>
-        </div>
+        <div class="or">או</div>
+        <a class="hb-btn hb-btn-secondary hb-btn-lg hb-btn-block" href="register">יצירת חשבון הורה</a>
     </div>
+
+    <p class="muted small hb-row"><Icon Name="user" />הורים, מנהלי מתנסים ומנהלי מערכת מתחברים מאותו מקום.</p>
 </main>
+
+@code {
+    // הערכים שהמשתמש הקליד
+    private string? email;
+    private string? password;
+
+    // מצב הדף: הודעת השגיאה, והאם בקשה בדרך
+    private string? errorMessage;
+    private bool isBusy;
+
+    private async Task LoginAsync()
+    {
+        errorMessage = null;
+
+        // בדיקת קלט, לפני שפונים לשרת
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            errorMessage = "יש למלא אימייל וסיסמה.";
+            return;
+        }
+
+        isBusy = true;
+        try
+        {
+            // שולחים לבקר את האימייל והסיסמה
+            LoginRequest request = new LoginRequest { Email = email.Trim(), Password = password };
+            HttpResponseMessage response = await Http.PostAsJsonAsync("api/users/login", request);
+
+            // 401: האימייל או הסיסמה שגויים (או שהמשתמש חסום)
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                errorMessage = "האימייל או הסיסמה שגויים.";
+                return;
+            }
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = "ההתחברות נכשלה. נסו שוב.";
+                return;
+            }
+
+            // הבקר החזיר את המשתמש עם התפקיד שלו, בלי הסיסמה
+            User? user = await response.Content.ReadFromJsonAsync<User>();
+            if (user == null)
+            {
+                errorMessage = "ההתחברות נכשלה. נסו שוב.";
+                return;
+            }
+
+            // שומרים בשירות. מכאן כל הדפים יודעים מי מחובר
+            Session.Login(user);
+        }
+        catch (HttpRequestException)
+        {
+            // ה-API לא פועל, או שהכתובת ב-appsettings.json לא נכונה
+            errorMessage = "השרת לא זמין כרגע. נסו שוב בעוד רגע.";
+            return;
+        }
+        finally
+        {
+            // רץ תמיד, גם אחרי return, כדי שהכפתור לא יישאר מושבת
+            isBusy = false;
+        }
+
+        // מעבר לדף הבית, בתוך אותו חיבור. השירות נשאר עם המשתמש
+        Navigation.NavigateTo("");
+    }
+}

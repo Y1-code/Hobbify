@@ -1,12 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#1D2F63"/>
-  <g fill="#FFFFFF" opacity=".5">
-    <rect x="16" y="18" width="8" height="8" rx="2"/>
-    <rect x="40" y="18" width="8" height="8" rx="2"/>
-    <rect x="16" y="30" width="8" height="8" rx="2"/>
-    <rect x="28" y="30" width="8" height="8" rx="2"/>
-    <rect x="16" y="42" width="32" height="4" rx="2"/>
+  <g stroke-width="6" stroke-linecap="round">
+    <path d="M32 4v8" stroke="#28A745"/>
+    <path d="M52 12l-6 6" stroke="#E5305A"/>
+    <path d="M60 32h-8" stroke="#0A6CDB"/>
+    <path d="M52 52l-6-6" stroke="#28A745"/>
+    <path d="M32 60v-8" stroke="#E5305A"/>
+    <path d="M12 52l6-6" stroke="#0A6CDB"/>
+    <path d="M4 32h8" stroke="#28A745"/>
+    <path d="M12 12l6 6" stroke="#E5305A"/>
   </g>
-  <rect x="28" y="18" width="8" height="8" rx="2" fill="#FFE066"/>
-  <rect x="40" y="30" width="8" height="8" rx="2" fill="#FFE066"/>
+  <circle cx="32" cy="32" r="13" fill="#FF8A00"/>
+  <path d="M26.5 33.5c3 3.5 8 3.5 11 0" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" fill="none"/>
 </svg>

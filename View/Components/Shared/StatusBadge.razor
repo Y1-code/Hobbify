@@ -1,0 +1,18 @@
+@* תגית סטטוס: עיגול צבעוני עם אייקון, ולידו טקסט. למשל "אושר" בירוק או "בבדיקה" בצהוב.
+   רכיב משותף: משתמשים בו בדף הבית ובדפים של ההורה, מנהל המתנס ומנהל המערכת.
+   שימוש: <StatusBadge Color="green" Icon="check" Text="אושר" /> *@
+<span class="status st-@Color">
+    <span class="st-ic"><Icon Name="@Icon" /></span>
+    @Text
+</span>
+
+@code {
+    // הצבע: green, yellow, red או gray
+    [Parameter, EditorRequired] public string Color { get; set; } = "";
+
+    // שם האייקון שבתוך העיגול, למשל check, clock, x
+    [Parameter, EditorRequired] public string Icon { get; set; } = "";
+
+    // הטקסט שליד העיגול
+    [Parameter, EditorRequired] public string Text { get; set; } = "";
+}

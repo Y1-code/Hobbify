@@ -13,6 +13,12 @@ string apiBaseUrl = builder.Configuration["ApiBaseUrl"]
 // HttpClient ששולח בקשות ל-API, כשהוא כבר מכיר את הכתובת.
 // כל דף שכותב @inject HttpClient Http מקבל אותו מוכן.
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
+
+// נוסף בשלב 6: השירות שזוכר את המשתמש המחובר.
+// AddScoped: עצם אחד לכל לשונית בדפדפן, כך שכל גולש רואה רק את המשתמש של עצמו.
+// (עם AddSingleton היה עצם אחד לכל השרת, וכל הגולשים היו רואים את אותו משתמש.)
+builder.Services.AddScoped<View.Services.UserSession>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
