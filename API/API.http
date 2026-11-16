@@ -90,13 +90,39 @@ Content-Type: application/json
 
 ###
 
-# התחברות עם פרטים נכונים (צפוי: 200 והמשתמש, בלי סיסמה)
+# ----- התחברות עם משתמש מכל תפקיד (שלב 7) -----
+# הסיסמאות שמורות בבסיס הנתונים כגיבוב BCrypt. הבדיקה נעשית ב-UserDB.CheckLoginAsync עם Verify.
+# בתשובה אין סיסמה ואין גיבוב: במחלקה User אין בכלל תכונה של סיסמה.
+
+# התחברות של מנהל המערכת (צפוי: 200, role = SuperAdmin)
 POST {{API_HostAddress}}/api/users/login
 Content-Type: application/json
 
 {
   "email": "admin@hobbify.co.il",
   "password": "Admin123"
+}
+
+###
+
+# התחברות של מנהל מתנס (צפוי: 200, role = Manager)
+POST {{API_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "ronit@hobbify.co.il",
+  "password": "Manager123"
+}
+
+###
+
+# התחברות של הורה (צפוי: 200, role = Parent)
+POST {{API_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "dana@example.com",
+  "password": "Parent123"
 }
 
 ###
