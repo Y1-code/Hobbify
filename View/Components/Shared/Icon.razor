@@ -1,9 +1,14 @@
-@* אייקון קטן. הציורים עצמם מוגדרים ב-site.css, במחלקות שמתחילות ב-i- (למשל i-search).
-   שימוש: <Icon Name="search" />
-   שמות לדוגמה: search, pin, check, x, clock, bell, user, users, plus, grid, inbox, building, star, edit, ban *@
+@*
+    אייקון קטן, הציורים עצמם מוגדרים בקובץ העיצוב
+    שימוש
+        <Icon Name="search" />
+    שמות לדוגמה
+        search, pin, check, x, clock, bell, user, users, plus, grid, inbox, building, star, edit, ban
+*@
 <i class="i i-@Name" aria-hidden="true"></i>
 
 @code {
-    // שם האייקון, בלי הקידומת i-
+    // שם האייקון, בלי הקידומת
+    //     i-
     [Parameter, EditorRequired] public string Name { get; set; } = "";
 }

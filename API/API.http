@@ -1,12 +1,16 @@
-# בדיקות ה-API של המשתמשים.
-# להרצה ב-VS Code צריך את ההרחבה REST Client, ואז לוחצים "Send Request" מעל כל בקשה.
-# אם ה-API שלך עולה בפורט אחר, שנה את המספר בשורה הבאה.
+# בדיקות של כתובות המשתמשים בשרת
+# להרצה צריך להתקין את ההרחבה
+#     REST Client
+# ואז לוחצים מעל כל בקשה על
+#     Send Request
+# אם השרת שלך עולה בפורט אחר, שנה את המספר בשורה הבאה
 @API_HostAddress = http://localhost:5208
 
 # סדר ההרצה של בדיקות משתמש הבדיקה:
-# קודם "הרשמה של הורה בדיקה" (היא שומרת את המזהה החדש), ואחריה העדכונים, ובסוף המחיקה.
-# המזהה לא נכתב ידנית: כל הרשמה מקבלת מספר חדש, ולכן הקובץ לוקח אותו מהתשובה של ההרשמה.
-# אם ההרשמה מחזירה 409, נשאר משתמש בדיקה מהרצה קודמת. מוחקים אותו ב-Workbench:
+# קודם הרשמה של הורה בדיקה, אחריה העדכונים, ובסוף המחיקה
+# המזהה לא נכתב ידנית, הוא נלקח מהתשובה של ההרשמה
+# אם ההרשמה נכשלת, נשאר משתמש בדיקה מהרצה קודמת
+# מוחקים אותו בכלי ניהול בסיס הנתונים עם השאילתה הבאה
 #   DELETE FROM HobbifyDB.Users WHERE Email IN ('test.parent@example.com', 'new.test.parent@example.com');
 
 ###
@@ -30,24 +34,29 @@ GET {{API_HostAddress}}/api/users/999
 
 ###
 
-# האם אימייל קיים (צפוי: true)
+# האם אימייל קיים
+#     expected: true
 GET {{API_HostAddress}}/api/users/email-exists?email=dana@example.com
 
 ###
 
-# האם אימייל קיים, באותיות גדולות (צפוי: true, ההשוואה לא מבדילה)
+# האם אימייל קיים, באותיות גדולות
+# ההשוואה לא מבדילה בין אותיות גדולות לקטנות
+#     expected: true
 GET {{API_HostAddress}}/api/users/email-exists?email=DANA@EXAMPLE.COM
 
 ###
 
-# ספירת משתמשים לפי תפקיד (צפוי: Manager 2, Parent 7, SuperAdmin 1)
+# ספירת משתמשים לפי תפקיד
+#     expected: Manager 2, Parent 7, SuperAdmin 1
 GET {{API_HostAddress}}/api/users/count-by-role
 
 ###
 
 # ===== הרשמה והתחברות =====
 
-# הרשמה של הורה בדיקה (צפוי: 201 והמשתמש החדש, עם תפקיד Parent)
+# הרשמה של הורה בדיקה, המשתמש החדש חוזר עם תפקיד הורה
+#     expected: 201, role = Parent
 # @name register
 POST {{API_HostAddress}}/api/users/register
 Content-Type: application/json
@@ -91,10 +100,14 @@ Content-Type: application/json
 ###
 
 # ----- התחברות עם משתמש מכל תפקיד (שלב 7) -----
-# הסיסמאות שמורות בבסיס הנתונים כגיבוב BCrypt. הבדיקה נעשית ב-UserDB.CheckLoginAsync עם Verify.
-# בתשובה אין סיסמה ואין גיבוב: במחלקה User אין בכלל תכונה של סיסמה.
+# הסיסמאות שמורות בבסיס הנתונים מוצפנות
+#     BCrypt
+# הבדיקה נעשית בפעולה
+#     UserDB.CheckLoginAsync
+# בתשובה אין סיסמה ואין גיבוב, כי במחלקה של המשתמש אין תכונה כזו
 
-# התחברות של מנהל המערכת (צפוי: 200, role = SuperAdmin)
+# התחברות של מנהל המערכת
+#     expected: 200, role = SuperAdmin
 POST {{API_HostAddress}}/api/users/login
 Content-Type: application/json
 
@@ -105,7 +118,8 @@ Content-Type: application/json
 
 ###
 
-# התחברות של מנהל מתנס (צפוי: 200, role = Manager)
+# התחברות של מנהל מתנס
+#     expected: 200, role = Manager
 POST {{API_HostAddress}}/api/users/login
 Content-Type: application/json
 
@@ -116,7 +130,8 @@ Content-Type: application/json
 
 ###
 
-# התחברות של הורה (צפוי: 200, role = Parent)
+# התחברות של הורה
+#     expected: 200, role = Parent
 POST {{API_HostAddress}}/api/users/login
 Content-Type: application/json
 
@@ -139,7 +154,8 @@ Content-Type: application/json
 ###
 
 # ===== עדכונים על משתמש הבדיקה =====
-# כל הבקשות כאן משתמשות ב-{{testUserId}}, והוא נקבע מההרשמה של הורה הבדיקה.
+# כל הבקשות כאן משתמשות במזהה של משתמש הבדיקה
+# הוא נקבע מההרשמה של הורה הבדיקה
 
 # שינוי תפקיד (צפוי: 204)
 PUT {{API_HostAddress}}/api/users/{{testUserId}}/role?role=Manager
@@ -162,7 +178,7 @@ Content-Type: application/json
 
 ###
 
-# עדכון סיסמה (צפוי: 204, ואחריו התחברות עם NewPass123 עובדת)
+# עדכון סיסמה (צפוי: 204, ואחריו התחברות עם הסיסמה החדשה עובדת)
 PUT {{API_HostAddress}}/api/users/{{testUserId}}/password
 Content-Type: application/json
 
@@ -186,7 +202,9 @@ Content-Type: application/json
 
 ###
 
-# הדלקת הפעמון (צפוי: 204, ואז GET על המשתמש מראה hasUpdates: true)
+# הדלקת הפעמון (צפוי: 204)
+# אחר כך שליפה של המשתמש מראה
+#     hasUpdates: true
 PUT {{API_HostAddress}}/api/users/{{testUserId}}/has-updates?value=true
 
 ###
@@ -217,7 +235,8 @@ PUT {{API_HostAddress}}/api/users/{{testUserId}}/active?value=true
 
 ###
 
-# משתמש הבדיקה אחרי כל העדכונים (צפוי: שם, אימייל ותפקיד Manager מהעדכונים למעלה)
+# משתמש הבדיקה אחרי כל העדכונים
+# צפוי: שם, אימייל ותפקיד מנהל מתנס מהעדכונים למעלה
 GET {{API_HostAddress}}/api/users/{{testUserId}}
 
 ###

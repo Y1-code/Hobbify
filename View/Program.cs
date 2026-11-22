@@ -6,17 +6,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// הכתובת של ה-API נקראת מ-appsettings.json. אם היא חסרה, התצוגה לא עולה.
+// appsettings.json
+//     הכתובת של השרת נקראת מהקובץ הזה, ואם היא חסרה התצוגה לא עולה
 string apiBaseUrl = builder.Configuration["ApiBaseUrl"]
     ?? throw new InvalidOperationException("ApiBaseUrl not found in appsettings.json.");
 
-// HttpClient ששולח בקשות ל-API, כשהוא כבר מכיר את הכתובת.
-// כל דף שכותב @inject HttpClient Http מקבל אותו מוכן.
+// HttpClient
+//     שולח בקשות לשרת ומכיר את הכתובת שלו
+//     כל דף שמבקש אותו מקבל אותו מוכן
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 
-// נוסף בשלב 6: השירות שזוכר את המשתמש המחובר.
-// AddScoped: עצם אחד לכל לשונית בדפדפן, כך שכל גולש רואה רק את המשתמש של עצמו.
-// (עם AddSingleton היה עצם אחד לכל השרת, וכל הגולשים היו רואים את אותו משתמש.)
+// השירות שזוכר את המשתמש המחובר
+// AddScoped
+//     עצם אחד לכל לשונית בדפדפן, כך שכל גולש רואה רק את המשתמש של עצמו
+// AddSingleton
+//     עצם אחד לכל השרת, ולכן כל הגולשים היו רואים את אותו משתמש
 builder.Services.AddScoped<View.Services.UserSession>();
 
 var app = builder.Build();

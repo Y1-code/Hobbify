@@ -1,6 +1,9 @@
-@* נוסף בשלב 9. כרטיס נתון בלוח ניהול: אייקון צבעוני, מספר גדול, כותרת והערה קטנה.
-   רכיב משותף: משתמשים בו בדף הראשי של ההורה, של מנהל המתנס ושל מנהל המערכת.
-   שימוש: <StatCard Icon="inbox" Color="yellow" Number="4" Title="בקשות ממתינות" Note="הוותיקה מלפני 5 ימים" /> *@
+@*
+    כרטיס נתון בלוח ניהול: אייקון צבעוני, מספר גדול, כותרת והערה קטנה
+    רכיב משותף, משתמשים בו בדף הראשי של ההורה, של מנהל המתנס ושל מנהל המערכת
+    שימוש
+        <StatCard Icon="inbox" Color="yellow" Number="4" Title="Pending" Note="Oldest is 5 days" />
+*@
 <div class="hb-card stat h-100">
     <span class="icon-tile stat-icon t-@Color"><Icon Name="@Icon" /></span>
     <span class="num">@Number</span>
@@ -12,10 +15,12 @@
 </div>
 
 @code {
-    // שם האייקון, למשל grid, inbox, users
+    // שם האייקון
+    //     grid, inbox, users
     [Parameter, EditorRequired] public string Icon { get; set; } = "";
 
-    // צבע האייקון: primary, accent, green או yellow
+    // צבע האייקון
+    //     primary, accent, green, yellow
     [Parameter] public string Color { get; set; } = "primary";
 
     // המספר הגדול. מחרוזת, כדי שאפשר יהיה לכתוב גם "1,284"

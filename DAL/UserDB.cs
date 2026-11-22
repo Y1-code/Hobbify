@@ -4,20 +4,22 @@ using MySql.Data.MySqlClient;
 namespace DAL
 {
     /// <summary>
-    /// כל השאילתות של טבלת Users, ורק הן.
-    /// מחרוזת החיבור מגיעה מבחוץ (מה-API), ו-UserDB לא יודע מאיפה היא נקראה.
+    /// כל השאילתות של טבלת המשתמשים, ורק הן
+    /// מחרוזת החיבור מגיעה מבחוץ, והמחלקה לא יודעת מאיפה היא נקראה
     ///
-    /// כל ערך שמגיע מהמשתמש נכנס לשאילתה כפרמטר (@Email וכו') ולא מודבק לטקסט,
-    /// כדי למנוע SQL Injection.
-    /// סיסמאות נשמרות מוצפנות ב-BCrypt ואף פעם לא כטקסט רגיל.
+    /// SQL Injection
+    ///     כל ערך שמגיע מהמשתמש נכנס לשאילתה כפרמטר ולא מודבק לטקסט
+    ///
+    /// BCrypt
+    ///     סיסמאות נשמרות מוצפנות ואף פעם לא כטקסט רגיל
     /// </summary>
     public class UserDB
     {
         private readonly string connectionString;
 
-        // שאילתת בסיס אחת לכל השליפות, כדי שהעמודות יהיו תמיד באותו סדר.
-        // טבלת Users מצורפת לטבלת Roles (JOIN), כדי לקבל גם את שם התפקיד ולא רק את המזהה שלו.
-        // AS Role נותן לעמודה את השם Role, כך ש-ReadUser קורא אותה כמו קודם.
+        // שאילתת בסיס אחת לכל השליפות, כדי שהעמודות יהיו תמיד באותו סדר
+        // JOIN
+        //     טבלת המשתמשים מצורפת לטבלת התפקידים, כדי לקבל גם את שם התפקיד ולא רק את המזהה
         private const string SelectUsers = @"
             SELECT u.UserId, u.FullName, u.Email, u.Phone, u.RoleId, r.RoleName AS Role,
                    u.HasUpdates, u.IsActive, u.CreatedAt
@@ -32,9 +34,10 @@ namespace DAL
         // ---------- הוספה ובדיקות ----------
 
         /// <summary>
-        /// מוסיפה משתמש ומחזירה את המזהה החדש שלו.
-        /// הסיסמה מוצפנת כאן, לפני שהיא נשמרת.
-        /// את מזהה התפקיד מוצאים לפי שם התפקיד, בתוך אותה שאילתה (INSERT ... SELECT).
+        /// מוסיפה משתמש ומחזירה את המזהה החדש שלו
+        /// הסיסמה מוצפנת כאן, לפני שהיא נשמרת
+        /// מזהה התפקיד נמצא לפי שם התפקיד, בתוך אותה שאילתה
+        ///     INSERT ... SELECT
         /// </summary>
         public async Task<int> AddUserAsync(User user, string password)
         {
@@ -57,7 +60,7 @@ namespace DAL
 
             int newId = Convert.ToInt32(await command.ExecuteScalarAsync());
 
-            // אם התפקיד לא קיים בטבלת Roles, לא נוספה אף שורה והמזהה הוא 0
+            // אם התפקיד לא קיים בטבלת התפקידים, לא נוספה שורה והמזהה הוא 0
             if (newId == 0)
             {
                 throw new ArgumentException($"Role '{user.Role}' does not exist in the Roles table.");
@@ -66,7 +69,7 @@ namespace DAL
         }
 
         /// <summary>
-        /// האם האימייל כבר רשום. ההשוואה לא מבדילה בין אותיות גדולות וקטנות.
+        /// האם האימייל כבר רשום. ההשוואה לא מבדילה בין אותיות גדולות וקטנות
         /// </summary>
         public async Task<bool> EmailExistsAsync(string email)
         {
@@ -81,9 +84,12 @@ namespace DAL
         }
 
         /// <summary>
-        /// בדיקת התחברות. מחזירה את המשתמש אם האימייל והסיסמה נכונים והמשתמש פעיל, אחרת null.
-        /// הסיסמה נבדקת מול ההצפנה ב-BCrypt, ולא בהשוואת טקסט ב-SQL.
-        /// משתמש חסום (IsActive = FALSE) לא יכול להתחבר, גם עם סיסמה נכונה.
+        /// בדיקת התחברות, מחזירה את המשתמש אם האימייל והסיסמה נכונים והמשתמש פעיל
+        /// אחרת מוחזר ערך ריק
+        /// BCrypt
+        ///     הסיסמה נבדקת מול ההצפנה ולא בהשוואת טקסט בשאילתה
+        /// IsActive
+        ///     משתמש חסום לא יכול להתחבר, גם עם סיסמה נכונה
         /// </summary>
         public async Task<User?> CheckLoginAsync(string email, string password)
         {
@@ -146,8 +152,9 @@ namespace DAL
         }
 
         /// <summary>
-        /// כמה משתמשים יש בכל תפקיד (GROUP BY). שימושי לדף הניהול.
-        /// LEFT JOIN מתחיל מטבלת Roles, ולכן גם תפקיד בלי אף משתמש מופיע, עם 0.
+        /// כמה משתמשים יש בכל תפקיד, שימושי לדף הניהול
+        /// LEFT JOIN
+        ///     מתחיל מטבלת התפקידים, ולכן גם תפקיד בלי אף משתמש מופיע עם אפס
         /// </summary>
         public async Task<Dictionary<string, int>> CountUsersByRoleAsync()
         {
@@ -171,11 +178,13 @@ namespace DAL
         }
 
         // ---------- עדכונים ----------
-        // כל פעולת עדכון מחזירה true אם עודכנה שורה, ו-false אם המשתמש לא נמצא.
+        // כל פעולת עדכון מחזירה האם עודכנה שורה
+        //     true: updated, false: user not found
 
         /// <summary>
-        /// שינוי תפקיד לפי שם התפקיד החדש. מזהה התפקיד נלקח מטבלת Roles בתוך אותה שאילתה.
-        /// מחזירה false אם המשתמש או התפקיד לא נמצאו.
+        /// שינוי תפקיד לפי שם התפקיד החדש, והמזהה שלו נלקח מטבלת התפקידים בתוך אותה שאילתה
+        /// אם המשתמש או התפקיד לא נמצאו, מוחזר
+        ///     false
         /// </summary>
         public async Task<bool> UpdateRoleAsync(int userId, string role)
         {
@@ -214,7 +223,8 @@ namespace DAL
         }
 
         /// <summary>
-        /// הפעמון: true כשמנהל מתנס מטפל בבקשה של ההורה, false כשההורה לוחץ על הפעמון.
+        /// הפעמון נדלק כשמנהל מתנס מטפל בבקשה של ההורה, ונכבה כשההורה לוחץ עליו
+        ///     true: on, false: off
         /// </summary>
         public async Task<bool> SetHasUpdatesAsync(int userId, bool hasUpdates)
         {
@@ -223,8 +233,9 @@ namespace DAL
         }
 
         /// <summary>
-        /// חסימה (false) או החזרה לפעילות (true) של משתמש.
-        /// זו הדרך הרגילה "להוציא" משתמש מהמערכת, במקום למחוק אותו.
+        /// חסימה או החזרה לפעילות של משתמש
+        ///     false: blocked, true: active
+        /// זו הדרך הרגילה "להוציא" משתמש מהמערכת, במקום למחוק אותו
         /// </summary>
         public async Task<bool> SetActiveAsync(int userId, bool isActive)
         {
@@ -235,9 +246,12 @@ namespace DAL
         // ---------- מחיקה ----------
 
         /// <summary>
-        /// מוחקת משתמש. מיועד רק לניקוי משתמשי בדיקה. במערכת עצמה חוסמים עם SetActiveAsync.
-        /// אם למשתמש יש הרשמות או מתנס, MySQL חוסם את המחיקה (מפתח זר עם RESTRICT),
-        /// ואז מוחזר false.
+        /// מוחקת משתמש, מיועד רק לניקוי משתמשי בדיקה
+        /// במערכת עצמה חוסמים משתמש בפעולה
+        ///     SetActiveAsync
+        /// RESTRICT
+        ///     אם למשתמש יש הרשמות או מתנס, המחיקה נחסמת ומוחזר
+        ///     false
         /// </summary>
         public async Task<bool> DeleteUserAsync(int userId)
         {
@@ -260,7 +274,7 @@ namespace DAL
         // ---------- עזר פרטי ----------
 
         /// <summary>
-        /// הופכת שורה מהטבלה לאובייקט User. כל השליפות משתמשות בה, כדי שהקוד לא יחזור על עצמו.
+        /// הופכת שורה מהטבלה לאובייקט של משתמש, כל השליפות משתמשות בה כדי שהקוד לא יחזור על עצמו
         /// </summary>
         private static User ReadUser(MySqlDataReader reader)
         {
@@ -279,8 +293,8 @@ namespace DAL
         }
 
         /// <summary>
-        /// עדכון של עמודה אחת לפי מזהה משתמש.
-        /// שם העמודה כתוב בקוד (לא מגיע מהמשתמש), והערך עובר כפרמטר.
+        /// עדכון של עמודה אחת לפי מזהה משתמש
+        /// שם העמודה כתוב בקוד (לא מגיע מהמשתמש), והערך עובר כפרמטר
         /// </summary>
         private async Task<bool> ExecuteUpdateAsync(string sql, int userId, object value)
         {

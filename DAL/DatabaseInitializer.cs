@@ -3,17 +3,19 @@ using MySql.Data.MySqlClient;
 namespace DAL
 {
     /// <summary>
-    /// אתחול בסיס הנתונים של Hobbify.
-    /// רץ פעם אחת בכל עליה של ה-API, ובטוח להריץ אותו שוב ושוב (אידמפוטנטי):
-    /// מה שכבר קיים לא נוצר מחדש, ונתונים התחלתיים לא מוכנסים פעמיים.
+    /// אתחול בסיס הנתונים
+    ///
+    /// Idempotent
+    ///     רץ בכל הפעלה של השרת, ובטוח להריץ אותו שוב ושוב
+    ///     מה שכבר קיים לא נוצר מחדש, ונתונים התחלתיים לא מוכנסים פעמיים
     /// </summary>
     public static class DatabaseInitializer
     {
         public const string DatabaseName = "HobbifyDB";
 
         /// <summary>
-        /// הפעולה הראשית. מקבלת מחרוזת חיבור לשרת בלבד (בלי Database=),
-        /// כי בהרצה הראשונה בסיס הנתונים עוד לא קיים.
+        /// הפעולה הראשית, מקבלת מחרוזת חיבור לשרת בלבד
+        /// כי בהרצה הראשונה בסיס הנתונים עוד לא קיים
         /// </summary>
         public static async Task InitializeAsync(string serverConnectionString)
         {
@@ -21,14 +23,14 @@ namespace DAL
 
             string dbConnectionString = GetDatabaseConnectionString(serverConnectionString);
             await CreateTablesAsync(dbConnectionString);
-            await SeedRolesAsync(dbConnectionString);      // לפני SeedUsersAsync: לכל משתמש חייב להיות תפקיד קיים
+            await SeedRolesAsync(dbConnectionString);      // התפקידים נוצרים לפני המשתמשים
             await SeedCategoriesAsync(dbConnectionString);
             await SeedUsersAsync(dbConnectionString);
         }
 
         /// <summary>
-        /// מחזירה מחרוזת חיבור שמצביעה על HobbifyDB.
-        /// בשלבים הבאים (UserDB ודומיה) משתמשים בה כדי להתחבר לבסיס הנתונים עצמו.
+        /// מחזירה מחרוזת חיבור שמצביעה על בסיס הנתונים עצמו
+        /// שכבת הנתונים משתמשת בה כדי להתחבר אליו
         /// </summary>
         public static string GetDatabaseConnectionString(string serverConnectionString)
         {
@@ -57,26 +59,27 @@ namespace DAL
         }
 
         // ---------- שלב 2: הטבלאות ----------
-        // הסדר חשוב: טבלה עם מפתח זר נוצרת רק אחרי הטבלה שהיא מצביעה עליה.
-        // ערכי סטטוס, תפקיד ומין נשמרים באנגלית (לשימוש בקוד), ובממשק מציגים אותם בעברית.
+        // הסדר חשוב: טבלה עם מפתח זר נוצרת רק אחרי הטבלה שהיא מצביעה עליה
+        // ערכי סטטוס, תפקיד ומין נשמרים באנגלית (לשימוש בקוד), ובממשק מציגים אותם בעברית
 
         private static async Task CreateTablesAsync(string dbConnectionString)
         {
             string[] tables =
             {
-                // 0. Roles - התפקידים במערכת. נוצרת ראשונה כי Users מצביעה עליה.
-                // התפקיד נשמר כשורה בטבלה משלו ולא כטקסט בתוך Users, כדי שאי אפשר יהיה
-                // לכתוב תפקיד שלא קיים, ושינוי של שם תפקיד יהיה במקום אחד.
+                // 0. Roles
+                //     התפקידים במערכת, נוצרת ראשונה כי טבלת המשתמשים מצביעה עליה
+                //     התפקיד בטבלה משלו ולא כטקסט, כדי שלא יהיה אפשר לכתוב תפקיד שלא קיים
                 @"CREATE TABLE IF NOT EXISTS Roles (
                     RoleId   INT AUTO_INCREMENT PRIMARY KEY,
                     RoleName VARCHAR(20) NOT NULL UNIQUE
                 );",
 
-                // 1. Users - כל מי שמתחבר: הורה, מנהל מתנס או מנהל מערכת.
-                // RoleId הוא מפתח זר לטבלת Roles. RESTRICT: אי אפשר למחוק תפקיד שיש לו משתמשים.
-                // HasUpdates מדליק את הפעמון כשמנהל מתנס מטפל בבקשה של ההורה.
-                // IsActive: במערכת לא מוחקים משתמשים. משתמש חסום מסומן כלא פעיל,
-                // לא יכול להתחבר, וכל ההיסטוריה שלו (הרשמות, מתנס) נשמרת.
+                // 1. Users
+                //     כל מי שמתחבר: הורה, מנהל מתנס או מנהל מערכת
+                // RoleId
+                //     מפתח זר לטבלת התפקידים, אי אפשר למחוק תפקיד שיש לו משתמשים
+                // IsActive
+                //     לא מוחקים משתמשים, משתמש חסום מסומן כלא פעיל וההיסטוריה שלו נשמרת
                 @"CREATE TABLE IF NOT EXISTS Users (
                     UserId       INT AUTO_INCREMENT PRIMARY KEY,
                     FullName     VARCHAR(100) NOT NULL,
@@ -91,7 +94,8 @@ namespace DAL
                         REFERENCES Roles(RoleId) ON DELETE RESTRICT ON UPDATE CASCADE
                 );",
 
-                // 2. Cities - עיר, תמונת המפה שלה ומיקומה במפת ישראל (באחוזים).
+                // 2. Cities
+                //     עיר, תמונת המפה שלה ומיקומה במפת ישראל באחוזים
                 @"CREATE TABLE IF NOT EXISTS Cities (
                     CityId   INT AUTO_INCREMENT PRIMARY KEY,
                     Name     VARCHAR(100) NOT NULL UNIQUE,
@@ -100,14 +104,17 @@ namespace DAL
                     MapY     DECIMAL(5,2) NULL
                 );",
 
-                // 4. Categories - נוצרת לפני Classes כי חוג מצביע על קטגוריה.
+                // 4. Categories
+                //     נוצרת לפני טבלת החוגים, כי חוג מצביע על קטגוריה
                 @"CREATE TABLE IF NOT EXISTS Categories (
                     CategoryId INT AUTO_INCREMENT PRIMARY KEY,
                     Name       VARCHAR(50) NOT NULL UNIQUE
                 );",
 
-                // 3. CommunityCenters - מתנס ומיקומו במפת העיר (באחוזים).
-                // ManagerUserId ייחודי: לכל מתנס מנהל אחד, ולכל מנהל מתנס אחד.
+                // 3. CommunityCenters
+                //     מתנס ומיקומו במפת העיר באחוזים
+                // ManagerUserId
+                //     ייחודי: לכל מתנס מנהל אחד, ולכל מנהל מתנס אחד
                 @"CREATE TABLE IF NOT EXISTS CommunityCenters (
                     CenterId      INT AUTO_INCREMENT PRIMARY KEY,
                     ManagerUserId INT          NOT NULL UNIQUE,
@@ -127,8 +134,9 @@ namespace DAL
                     CONSTRAINT CHK_Centers_Status CHECK (Status IN ('Pending', 'Approved', 'Rejected'))
                 );",
 
-                // 5. Classes - החוג עצמו.
-                // האילוצים שומרים על נתונים הגיוניים, ובמיוחד SpotsLeft לא יורד מתחת ל-0.
+                // 5. Classes
+                //     החוג עצמו, והאילוצים שומרים על נתונים הגיוניים
+                //     למשל שמספר המקומות הפנויים לא יורד מתחת לאפס
                 @"CREATE TABLE IF NOT EXISTS Classes (
                     ClassId      INT AUTO_INCREMENT PRIMARY KEY,
                     CenterId     INT          NOT NULL,
@@ -155,9 +163,12 @@ namespace DAL
                     CONSTRAINT CHK_Classes_Spots  CHECK (SpotsLeft >= 0 AND SpotsLeft <= Capacity)
                 );",
 
-                // 6. ClassSchedules - מפגש שבועי אחד. חוג פעמיים בשבוע = שתי שורות.
-                // DayOfWeek: 0 = ראשון ... 6 = שבת.
-                // מחיקת חוג מוחקת גם את המפגשים שלו (CASCADE).
+                // 6. ClassSchedules
+                //     מפגש שבועי אחד, חוג פעמיים בשבוע הוא שתי שורות
+                // DayOfWeek
+                //     0 = ראשון ... 6 = שבת
+                // CASCADE
+                //     מחיקת חוג מוחקת גם את המפגשים שלו
                 @"CREATE TABLE IF NOT EXISTS ClassSchedules (
                     ScheduleId INT AUTO_INCREMENT PRIMARY KEY,
                     ClassId    INT     NOT NULL,
@@ -170,8 +181,9 @@ namespace DAL
                     CONSTRAINT CHK_Schedules_Time CHECK (StartTime < EndTime)
                 );",
 
-                // 7. Registrations - בקשת הרשמה, וגם הביקורת (Stars, ReviewComment).
-                // כך אין ביקורת בלי הרשמה, ויש לכל היותר ביקורת אחת לכל הרשמה.
+                // 7. Registrations
+                //     בקשת הרשמה, וגם הביקורת של ההורה על החוג
+                //     אין ביקורת בלי הרשמה, ולכל היותר ביקורת אחת לכל הרשמה
                 @"CREATE TABLE IF NOT EXISTS Registrations (
                     RegistrationId INT AUTO_INCREMENT PRIMARY KEY,
                     ClassId        INT          NOT NULL,
@@ -199,7 +211,8 @@ namespace DAL
                     CONSTRAINT CHK_Registrations_Stars CHECK (Stars IS NULL OR Stars BETWEEN 1 AND 5)
                 );",
 
-                // 8. Favorites - חוגים שההורה שמר. אותו חוג לא נשמר פעמיים לאותו הורה.
+                // 8. Favorites
+                //     חוגים שההורה שמר, אותו חוג לא נשמר פעמיים לאותו הורה
                 @"CREATE TABLE IF NOT EXISTS Favorites (
                     FavoriteId INT AUTO_INCREMENT PRIMARY KEY,
                     UserId     INT NOT NULL,
@@ -223,13 +236,13 @@ namespace DAL
         }
 
         // ---------- שלב 3: נתונים התחלתיים ----------
-        // כל הזנה רצה רק אם הטבלה שלה ריקה, כך שאין כפילויות בהרצות חוזרות.
-        // נתוני דוגמה נוספים (ערים, מתנסים, חוגים) יתווספו בשלבים הבאים.
-        // הסדר: Roles לפני Users, כי כל משתמש מצביע על תפקיד.
+        // כל הזנה רצה רק אם הטבלה שלה ריקה, כך שאין כפילויות בהרצות חוזרות
+        // נתוני דוגמה נוספים (ערים, מתנסים, חוגים) יתווספו בשלבים הבאים
+        // קודם התפקידים ואחר כך המשתמשים, כי כל משתמש מצביע על תפקיד
 
         /// <summary>
-        /// שלושת התפקידים הקבועים של המערכת, רק אם טבלת Roles ריקה.
-        /// השמות כאן חייבים להיות זהים לקבועים במחלקה Roles שב-Model.
+        /// שלושת התפקידים הקבועים של המערכת, רק אם טבלת התפקידים ריקה
+        /// השמות חייבים להיות זהים לקבועים במחלקת התפקידים במודל
         /// </summary>
         private static async Task SeedRolesAsync(string dbConnectionString)
         {
@@ -283,10 +296,12 @@ namespace DAL
         }
 
         /// <summary>
-        /// מנהל המערכת ומשתמשי דוגמה, רק אם טבלת Users ריקה.
-        /// לפי מסמך הייזום, מנהל המערכת לא נרשם דרך האתר אלא נוצר כאן מראש.
-        /// הסיסמאות מוצפנות ב-BCrypt לפני השמירה, כמו בכל הרשמה רגילה.
-        /// הסיסמאות כאן הן לנתוני דוגמה בלבד.
+        /// מנהל המערכת ומשתמשי דוגמה, רק אם טבלת המשתמשים ריקה
+        /// לפי מסמך הייזום, מנהל המערכת לא נרשם דרך האתר אלא נוצר כאן מראש
+        /// הסיסמאות כאן הן לנתוני דוגמה בלבד
+        ///
+        /// BCrypt
+        ///     הסיסמאות מוצפנות לפני השמירה, כמו בכל הרשמה רגילה
         /// </summary>
         private static async Task SeedUsersAsync(string dbConnectionString)
         {

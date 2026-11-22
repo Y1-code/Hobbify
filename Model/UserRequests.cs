@@ -2,11 +2,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Model
 {
-    // מחלקות קטנות שמתארות את מה שהתצוגה שולחת ל-API.
-    // התכונות בסוגריים המרובעים ([Required] וכו') נבדקות אוטומטית ב-API:
-    // אם משהו חסר או לא תקין, ה-API מחזיר 400 עם הסבר, והקוד בכלל לא רץ.
+    // מחלקות קטנות שמתארות את מה שהתצוגה שולחת לשרת
+    // Required
+    //     התכונות בסוגריים המרובעים נבדקות אוטומטית בשרת
+    //     אם משהו חסר או לא תקין, השרת מחזיר שגיאה עם הסבר, והקוד בכלל לא רץ
 
-    /// <summary>הרשמה של הורה חדש.</summary>
+    /// <summary>
+    /// הרשמה של הורה חדש
+    /// </summary>
     public class RegisterRequest
     {
         [Required(ErrorMessage = "יש להזין שם מלא")]
@@ -26,7 +29,9 @@ namespace Model
         public string Password { get; set; } = "";
     }
 
-    /// <summary>התחברות עם אימייל וסיסמה.</summary>
+    /// <summary>
+    /// התחברות עם אימייל וסיסמה
+    /// </summary>
     public class LoginRequest
     {
         [Required(ErrorMessage = "יש להזין אימייל")]
@@ -36,7 +41,9 @@ namespace Model
         public string Password { get; set; } = "";
     }
 
-    /// <summary>עדכון פרטים אישיים (שם וטלפון).</summary>
+    /// <summary>
+    /// עדכון פרטים אישיים, שם וטלפון
+    /// </summary>
     public class UpdateDetailsRequest
     {
         [Required(ErrorMessage = "יש להזין שם מלא")]

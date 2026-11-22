@@ -1,6 +1,8 @@
-@* נוסף בשלב 4. בשלב 5 נוסף קישור דו כיווני בין השדה למשתנה בדף (Value ו-ValueChanged).
-   שדה טופס: תווית ותיבת קלט, עם הסבר קטן מתחת אם צריך.
-   שימוש: <Field Id="reg-email" Label="אימייל" Type="email" Dir="ltr" @bind-Value="email" /> *@
+@*
+    שדה טופס: תווית ותיבת קלט, עם הסבר קטן מתחת אם צריך
+    שימוש
+        <Field Id="reg-email" Label="Email" Type="email" Dir="ltr" @bind-Value="email" />
+*@
 
 <div class="field">
     <label for="@Id">
@@ -22,16 +24,18 @@
 </div>
 
 @code {
-    // המזהה של התיבה. התווית מתחברת אליה דרך for, וכך לחיצה על התווית מכניסה לשדה.
+    // המזהה של התיבה, התווית מתחברת אליו וכך לחיצה על התווית מכניסה לשדה
     [Parameter, EditorRequired] public string Id { get; set; } = "";
 
     // הטקסט שמעל התיבה
     [Parameter, EditorRequired] public string Label { get; set; } = "";
 
-    // סוג השדה: text, email, password, tel
+    // סוג השדה
+    //     text, email, password, tel
     [Parameter] public string Type { get; set; } = "text";
 
-    // כיוון הכתיבה. "ltr" לשדות באנגלית כמו אימייל וסיסמה.
+    // כיוון הכתיבה, לשדות באנגלית כמו אימייל וסיסמה כותבים
+    //     ltr
     [Parameter] public string Dir { get; set; } = "rtl";
 
     // הסבר קטן מתחת לתיבה (לא חובה)
@@ -43,12 +47,14 @@
     // האם להציג כוכבית אדומה של שדה חובה
     [Parameter] public bool Required { get; set; }
 
-    // עוזר לדפדפן להציע מילוי אוטומטי (email, name, tel, current-password, new-password)
+    // עוזר לדפדפן להציע מילוי אוטומטי
+    //     email, name, tel, current-password, new-password
     [Parameter] public string? AutoComplete { get; set; }
 
-    // נוסף בשלב 5: הערך שבתיבה.
-    // שני הפרמטרים האלה יחד מאפשרים לדף לכתוב @bind-Value="משתנה" ולקבל קישור דו כיווני.
-    // דף שלא מעביר אותם, כמו דף ההתחברות, ממשיך לעבוד כמו קודם.
+    // הערך שבתיבה
+    // שני הפרמטרים האלה יחד מאפשרים לדף לקבל קישור דו כיווני
+    //     @bind-Value="email"
+    // דף שלא מעביר אותם, כמו דף ההתחברות, ממשיך לעבוד כמו קודם
     [Parameter] public string? Value { get; set; }
 
     // הפעולה של הדף שמקבלת את הערך החדש

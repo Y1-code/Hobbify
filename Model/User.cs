@@ -1,36 +1,40 @@
 namespace Model
 {
     /// <summary>
-    /// משתמש במערכת: הורה, מנהל מתנס או מנהל מערכת.
-    /// מחלקה אחת לכל התפקידים, כי לכולם אותם נתונים וההבדל הוא רק במה שמותר להם.
+    /// משתמש במערכת: הורה, מנהל מתנס או מנהל מערכת
+    /// מחלקה אחת לכל התפקידים, כי לכולם אותם נתונים וההבדל הוא רק במה שמותר להם
     ///
-    /// אין כאן סיסמה בכוונה: האובייקט הזה נשלח מה-API לתצוגה כ-JSON,
-    /// והסיסמה (גם מוצפנת) לא צריכה לצאת מהשרת. היא מטופלת רק ב-UserDB.
+    /// אין כאן סיסמה בכוונה
+    /// JSON
+    ///     האובייקט נשלח מהשרת לתצוגה בפורמט הזה
+    ///     והסיסמה, גם מוצפנת, לא צריכה לצאת מהשרת
     /// </summary>
     public class User : BaseEntity
     {
         public string FullName { get; set; } = "";
         public string Email { get; set; } = "";
         public string? Phone { get; set; }
-        // המפתח הזר לטבלת Roles
+        // מפתח זר לטבלת התפקידים
         public int RoleId { get; set; }
 
-        // שם התפקיד (Parent / Manager / SuperAdmin). נשלף מטבלת Roles בעזרת JOIN,
-        // ולכן שאר הקוד ממשיך לעבוד עם שם התפקיד כמו קודם.
+        // שם התפקיד, נשלף מטבלת התפקידים בעזרת
+        //     JOIN
+        // ולכן שאר הקוד ממשיך לעבוד עם שם התפקיד כמו קודם
         public string Role { get; set; } = Roles.Parent;
         public bool HasUpdates { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; }
 
         /// <summary>
-        /// בנאי ריק: נדרש כדי ש-ASP.NET יוכל להמיר JSON לאובייקט.
+        /// בנאי ריק, נדרש כדי שהשרת יוכל להמיר את הנתונים שהוא מקבל לאובייקט
         /// </summary>
         public User()
         {
         }
 
         /// <summary>
-        /// משתמש חדש שעוד לא נשמר. המזהה, RoleId, תאריך היצירה והדגלים HasUpdates ו-IsActive נקבעים בבסיס הנתונים.
+        /// משתמש חדש שעוד לא נשמר
+        /// המזהה, תאריך היצירה והדגלים נקבעים בבסיס הנתונים
         /// </summary>
         public User(string fullName, string email, string? phone, string role = Roles.Parent)
         {
@@ -41,7 +45,7 @@ namespace Model
         }
 
         /// <summary>
-        /// משתמש שנקרא מהטבלה, עם כל העמודות. את המזהה מעבירים למחלקת הבסיס.
+        /// משתמש שנקרא מהטבלה, עם כל העמודות. את המזהה מעבירים למחלקת הבסיס
         /// </summary>
         public User(int id, string fullName, string email, string? phone,
                     int roleId, string role, bool hasUpdates, bool isActive, DateTime createdAt)

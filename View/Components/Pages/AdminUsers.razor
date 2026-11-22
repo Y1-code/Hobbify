@@ -1,13 +1,15 @@
 @page "/admin/users"
 @inherits ProtectedPage
 
-@* נוסף בשלב 9. "ניהול משתמשים": טבלה של המשתמשים באתר, עם התפקיד והסטטוס של כל אחד.
-   דף מוגן: רק משתמש בתפקיד SuperAdmin רואה אותו.
-   שלב עיצובי: נתוני דוגמה בלבד, והכפתורים עדיין לא פועלים. *@
+@*
+    ניהול משתמשים: טבלה של המשתמשים באתר, עם התפקיד והסטטוס של כל אחד
+    דף מוגן, רק משתמש בתפקיד מנהל מערכת רואה אותו
+    שלב עיצובי: נתוני דוגמה בלבד, והכפתורים עדיין לא פועלים
+*@
 
 <PageTitle>ניהול משתמשים · Hobbify</PageTitle>
 
-@* התוכן מוצג רק אם התפקיד של המשתמש המחובר מתאים לדף. IsAllowed מגיעה מ-ProtectedPage *@
+@* התוכן מוצג רק למי שמורשה להיכנס לדף *@
 @if (IsAllowed)
 {
     <main>
@@ -57,7 +59,8 @@
 }
 
 @code {
-    // נתוני דוגמה. בשלב ההפעלה הרשימה תגיע מה-API (GET api/users).
+    // נתוני דוגמה, בשלב ההפעלה הרשימה תגיע מהשרת בכתובת
+    //     GET api/users
     private record UserRow(string FullName, string Email, string RoleName, string JoinDate, string Status);
 
     private readonly List<UserRow> users = new()
@@ -70,8 +73,7 @@
         new UserRow("גל ספאם",   "deals4u@mail.ru",       "הורה",       "30.10.2026", "blocked"),
     };
 
-    // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
-    // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
+    // התפקיד שמורשה להיכנס לדף
     protected override string AllowedRole
     {
         get { return Roles.SuperAdmin; }

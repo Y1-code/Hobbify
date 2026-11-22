@@ -5,15 +5,18 @@
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
-@* נוסף בשלב 4, ובשלב 5 נוספה ההפעלה.
-   @rendermode: הדף מחובר לשרת בחיבור קבוע, וכל לחיצה מפעילה קוד C# בשרת, בלי JavaScript.
-   prerender: false: הטופס מוצג רק אחרי שהחיבור מוכן, כדי שהקלדה ולחיצות לא ילכו לאיבוד.
+@*
+    rendermode
+        הדף מחובר לשרת בחיבור קבוע, וכל לחיצה מפעילה קוד בשרת בלי קוד שרץ בדפדפן
+    prerender: false
+        הטופס מוצג רק אחרי שהחיבור מוכן, כדי שהקלדה ולחיצות לא ילכו לאיבוד
 
-   הדף לא ניגש לבסיס הנתונים. הוא שולח בקשות ל-UsersController ב-API, והבקר מפעיל את UserDB.
-   ההרשמה בשני שלבים:
-   1. קריאה: בודקים שהאימייל לא רשום כבר.
-   2. כתיבה: שולחים את ההורה החדש, וה-API שומר אותו.
-   אחרי הצלחה: הודעה עם ספירה לאחור, ואחרי 5 שניות מעבר לדף ההתחברות. *@
+    הדף לא ניגש לבסיס הנתונים, הוא שולח בקשות לשרת והשרת פונה לבסיס הנתונים
+    ההרשמה בשני שלבים
+        קריאה: בודקים שהאימייל לא רשום כבר
+        כתיבה: שולחים את ההורה החדש והשרת שומר אותו
+    אחרי הצלחה מוצגת הודעה עם ספירה לאחור, ואחרי 5 שניות עוברים לדף ההתחברות
+*@
 
 <PageTitle>הרשמה · Hobbify</PageTitle>
 
@@ -26,9 +29,11 @@
             <p class="muted" style="margin-top:6px">חשבון אחד לכל הילדים במשפחה.</p>
         </div>
 
-        @* novalidate: הדפדפן לא בודק את השדות בעצמו. הבדיקה נעשית בקוד שבתחתית הדף *@
+        @*
+            novalidate
+                הדפדפן לא בודק את השדות בעצמו, הבדיקה נעשית בקוד שבתחתית הדף
+        *@
         <form class="stack" novalidate>
-            @* כל שדה מקושר למשתנה בקוד עם @bind-Value *@
             <Field Id="reg-name" Label="שם מלא" Required="true" AutoComplete="name"
                    Placeholder="לדוגמה: דנה כהן" @bind-Value="fullName" />
             <Field Id="reg-email" Label="אימייל" Type="email" Dir="ltr" Required="true" AutoComplete="email"
@@ -58,7 +63,7 @@
                 </div>
             }
 
-            @* לחיצה מפעילה את RegisterAsync. בזמן השליחה ואחרי הצלחה הכפתור מושבת, כדי שלא ילחצו פעמיים *@
+            @* הכפתור מושבת בזמן השליחה ואחרי הצלחה, כדי שלא ילחצו פעמיים *@
             <button class="hb-btn hb-btn-primary hb-btn-lg hb-btn-block" type="button"
                     disabled="@(isBusy || isRegistered)" @onclick="RegisterAsync">
                 @(isBusy ? "בודקים..." : "יצירת חשבון")
@@ -116,7 +121,7 @@
         isBusy = true;
         try
         {
-            // ----- שלב 1, קריאה: האם האימייל כבר רשום? -----
+            // שלב 1, קריאה: האם האימייל כבר רשום
             bool emailExists = await Http.GetFromJsonAsync<bool>(
                 $"api/users/email-exists?email={Uri.EscapeDataString(email.Trim())}");
             if (emailExists)
@@ -125,7 +130,7 @@
                 return;
             }
 
-            // ----- שלב 2, כתיבה: שליחת ההורה החדש ל-API -----
+            // שלב 2, כתיבה: שמירת ההורה החדש בשרת
             var request = new RegisterRequest
             {
                 FullName = fullName.Trim(),
@@ -149,13 +154,14 @@
         }
         catch (HttpRequestException)
         {
-            // ה-API לא פועל, או שהכתובת ב-appsettings.json לא נכונה
+            // השרת לא פועל, או שהכתובת שלו לא נכונה בקובץ
+            //     appsettings.json
             errorMessage = "השרת לא זמין כרגע. נסו שוב בעוד רגע.";
             return;
         }
         finally
         {
-            // רץ תמיד, גם אחרי return, כדי שהכפתור לא יישאר מושבת
+            // רץ תמיד, גם אחרי יציאה מוקדמת מהפונקציה, כדי שהכפתור לא יישאר מושבת
             isBusy = false;
         }
 

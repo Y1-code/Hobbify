@@ -1,14 +1,18 @@
-@* תגית סטטוס: עיגול צבעוני עם אייקון, ולידו טקסט. למשל "אושר" בירוק או "בבדיקה" בצהוב.
-   רכיב משותף: משתמשים בו בדף הבית ובדפים של ההורה, מנהל המתנס ומנהל המערכת.
-   הדף מעביר רק את שם הסטטוס, והרכיב קובע את הצבע, האייקון והטקסט. כך הם זהים בכל האתר.
-   שימוש: <StatusBadge Status="approved" /> *@
+@*
+    תגית סטטוס: עיגול צבעוני עם אייקון, ולידו טקסט
+    רכיב משותף, משתמשים בו בדף הבית ובדפים של ההורה, מנהל המתנס ומנהל המערכת
+    הדף מעביר רק את שם הסטטוס, והרכיב קובע את הצבע, האייקון והטקסט, כך שהם זהים בכל האתר
+    שימוש
+        <StatusBadge Status="approved" />
+*@
 <span class="status st-@color">
     <span class="st-ic"><Icon Name="@icon" /></span>
     @text
 </span>
 
 @code {
-    // שם הסטטוס באנגלית: pending, approved, rejected, cancelled, active, full, waiting, blocked
+    // שם הסטטוס באנגלית
+    //     pending, approved, rejected, cancelled, active, full, waiting, blocked
     [Parameter, EditorRequired] public string Status { get; set; } = "";
 
     private string color = "gray";

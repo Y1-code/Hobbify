@@ -5,15 +5,21 @@ using Model;
 namespace API.Controllers
 {
     /// <summary>
-    /// כתובות ה-API של המשתמשים. כל הכתובות מתחילות ב-/api/users.
-    /// כל פעולה מפעילה שאילתה אחת מ-UserDB ומחזירה קוד מצב מתאים.
+    /// כל הכתובות של המשתמשים בשרת מתחילות בכתובת הבאה
+    ///     /api/users
+    /// כל פעולה מפעילה שאילתה אחת ומחזירה קוד מצב מתאים
     ///
-    /// הבקר חסר מצב (Stateless): אין בו שדה שמשתנה בין בקשות, והוא לא זוכר מי התחבר.
-    /// מי שזוכר את המשתמש המחובר הוא השירות UserSession, בתצוגה.
+    /// Stateless
+    ///     הבקר חסר מצב, אין בו שדה שמשתנה בין בקשות והוא לא זוכר מי התחבר
+    ///     את המשתמש המחובר זוכר שירות בצד התצוגה, שנקרא
+    ///     UserSession
     ///
-    /// שים לב: הכתובות כאן פתוחות לכולם. בדיקת ההרשאות של שלב 8 נעשית בתצוגה בלבד,
-    /// והיא קובעת רק מה המשתמש רואה. כדי להגן גם על ה-API צריך שההתחברות תחזיר אסימון (Token),
-    /// שהתצוגה תשלח אותו עם כל בקשה, ושה-API יבדוק בכל בקשה מי שלח אותה ומה מותר לו.
+    /// הכתובות כאן פתוחות לכולם
+    /// ההרשאות של שלב 8 נעשות בתצוגה בלבד, והן קובעות רק מה המשתמש רואה
+    ///
+    /// Token
+    ///     להגנה גם על השרת צריך שההתחברות תחזיר אסימון
+    ///     התצוגה תשלח אותו עם כל בקשה, והשרת יבדוק מי שלח אותה ומה מותר לו
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
@@ -21,7 +27,8 @@ namespace API.Controllers
     {
         private readonly UserDB userDb;
 
-        // UserDB מגיע אוטומטית (Dependency Injection), כי רשמנו אותו ב-Program.cs.
+        // Dependency Injection
+        //     הפרמטר מגיע אוטומטית, כי רשמנו אותו בקובץ ההפעלה
         public UsersController(UserDB userDb)
         {
             this.userDb = userDb;
@@ -61,7 +68,8 @@ namespace API.Controllers
         }
 
         // POST /api/users/register
-        // הרשמה של הורה חדש. התפקיד תמיד Parent: אי אפשר להירשם כמנהל דרך הכתובת הזו.
+        // הרשמה של הורה חדש, התפקיד תמיד הורה
+        // אי אפשר להירשם כמנהל דרך הכתובת הזו
         [HttpPost("register")]
         public async Task<ActionResult<User>> Register([FromBody] RegisterRequest request)
         {
@@ -85,7 +93,7 @@ namespace API.Controllers
             if (user == null)
             {
                 // אותה הודעה לאימייל שגוי, לסיסמה שגויה ולמשתמש חסום,
-                // כדי לא לחשוף אילו אימיילים רשומים.
+                // כדי לא לחשוף אילו אימיילים רשומים
                 return Unauthorized("אימייל או סיסמה שגויים");
             }
             return Ok(user);
@@ -104,7 +112,8 @@ namespace API.Controllers
             return updated ? NoContent() : NotFound($"משתמש {id} לא נמצא");
         }
 
-        // PUT /api/users/5/password   (גוף הבקשה: "NewPass123")
+        // PUT /api/users/5/password
+        //     body: "NewPass123"
         [HttpPut("{id:int}/password")]
         public async Task<IActionResult> UpdatePassword(int id, [FromBody] string newPassword)
         {
@@ -117,7 +126,8 @@ namespace API.Controllers
             return updated ? NoContent() : NotFound($"משתמש {id} לא נמצא");
         }
 
-        // PUT /api/users/5/email   (גוף הבקשה: "new@example.com")
+        // PUT /api/users/5/email
+        //     body: "new@example.com"
         [HttpPut("{id:int}/email")]
         public async Task<IActionResult> UpdateEmail(int id, [FromBody] string email)
         {
@@ -143,7 +153,8 @@ namespace API.Controllers
             return NoContent();
         }
 
-        // PUT /api/users/5/details   (גוף הבקשה: { "fullName": "...", "phone": "..." })
+        // PUT /api/users/5/details
+        //     body: { "fullName": "...", "phone": "..." }
         [HttpPut("{id:int}/details")]
         public async Task<IActionResult> UpdateDetails(int id, [FromBody] UpdateDetailsRequest request)
         {
@@ -152,7 +163,8 @@ namespace API.Controllers
         }
 
         // PUT /api/users/5/has-updates?value=false
-        // הפעמון: false כשההורה לוחץ על הפעמון, true כשמנהל מתנס מטפל בבקשה שלו.
+        // הפעמון נכבה כשההורה לוחץ עליו, ונדלק כשמנהל מתנס מטפל בבקשה שלו
+        //     false: off, true: on
         [HttpPut("{id:int}/has-updates")]
         public async Task<IActionResult> SetHasUpdates(int id, [FromQuery] bool value)
         {
@@ -161,7 +173,8 @@ namespace API.Controllers
         }
 
         // PUT /api/users/5/active?value=false
-        // חסימת משתמש (false) או החזרה לפעילות (true). משתמש חסום לא יכול להתחבר.
+        // חסימת משתמש או החזרה לפעילות, משתמש חסום לא יכול להתחבר
+        //     false: blocked, true: active
         [HttpPut("{id:int}/active")]
         public async Task<IActionResult> SetActive(int id, [FromQuery] bool value)
         {
@@ -170,7 +183,7 @@ namespace API.Controllers
         }
 
         // DELETE /api/users/5
-        // לניקוי משתמשי בדיקה בלבד. במערכת עצמה לא מוחקים משתמשים, אלא חוסמים.
+        // לניקוי משתמשי בדיקה בלבד. במערכת עצמה לא מוחקים משתמשים, אלא חוסמים
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

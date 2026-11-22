@@ -1,6 +1,9 @@
-@* נוסף בשלב 9. קיצור דרך: כרטיס שכולו קישור לדף אחר, עם אייקון, כותרת ושורת הסבר.
-   רכיב משותף: משתמשים בו בדף הראשי של כל אחד משלושת התפקידים.
-   שימוש: <ShortcutCard Href="manager/classes" Icon="grid" Color="green" Title="החוגים שלי" Text="מקומות פנויים ועריכה" /> *@
+@*
+    קיצור דרך: כרטיס שכולו קישור לדף אחר, עם אייקון, כותרת ושורת הסבר
+    רכיב משותף, משתמשים בו בדף הראשי של כל אחד משלושת התפקידים
+    שימוש
+        <ShortcutCard Href="manager/classes" Icon="grid" Color="green" Title="Classes" Text="Spots and editing" />
+*@
 <a class="hb-card shortcut h-100" href="@Href">
     <span class="icon-tile stat-icon t-@Color"><Icon Name="@Icon" /></span>
     <b>@Title</b>
@@ -14,7 +17,8 @@
     // שם האייקון
     [Parameter, EditorRequired] public string Icon { get; set; } = "";
 
-    // צבע האייקון: primary, accent, green או yellow
+    // צבע האייקון
+    //     primary, accent, green, yellow
     [Parameter] public string Color { get; set; } = "primary";
 
     // כותרת הכרטיס
