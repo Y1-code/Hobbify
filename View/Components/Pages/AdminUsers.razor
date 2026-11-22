@@ -1,0 +1,79 @@
+@page "/admin/users"
+@inherits ProtectedPage
+
+@* נוסף בשלב 9. "ניהול משתמשים": טבלה של המשתמשים באתר, עם התפקיד והסטטוס של כל אחד.
+   דף מוגן: רק משתמש בתפקיד SuperAdmin רואה אותו.
+   שלב עיצובי: נתוני דוגמה בלבד, והכפתורים עדיין לא פועלים. *@
+
+<PageTitle>ניהול משתמשים · Hobbify</PageTitle>
+
+@* התוכן מוצג רק אם התפקיד של המשתמש המחובר מתאים לדף. IsAllowed מגיעה מ-ProtectedPage *@
+@if (IsAllowed)
+{
+    <main>
+        <div class="hb-container">
+            <PageHead Title="ניהול משתמשים" Subtitle="1,284 משתמשים · מציג 6" />
+
+            <div class="hb-card table-card">
+                <table class="hb-table">
+                    <thead>
+                        <tr>
+                            <th>שם</th><th>אימייל</th><th>תפקיד</th><th>תאריך הצטרפות</th><th>סטטוס</th>
+                            <th><span class="sr-only">פעולות</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (UserRow row in users)
+                        {
+                            <tr>
+                                <td><b>@row.FullName</b></td>
+                                <td dir="ltr" style="text-align:right" class="muted">@row.Email</td>
+                                <td><span class="tag">@row.RoleName</span></td>
+                                <td class="muted">@row.JoinDate</td>
+                                <td><StatusBadge Status="@row.Status" /></td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="hb-btn hb-btn-secondary hb-btn-sm" type="button">שנה תפקיד</button>
+                                        @* משתמש חסום אפשר להחזיר, ומשתמש פעיל אפשר לחסום *@
+                                        @if (row.Status == "blocked")
+                                        {
+                                            <button class="hb-btn hb-btn-tinted hb-btn-sm" type="button">בטל חסימה</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="hb-btn hb-btn-danger hb-btn-sm" type="button"><Icon Name="ban" />חסום</button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="page-note">משתמש חסום לא יכול להתחבר לאתר. לא מוחקים משתמשים, כדי לא לאבד את ההרשמות שלהם.</p>
+        </div>
+    </main>
+}
+
+@code {
+    // נתוני דוגמה. בשלב ההפעלה הרשימה תגיע מה-API (GET api/users).
+    private record UserRow(string FullName, string Email, string RoleName, string JoinDate, string Status);
+
+    private readonly List<UserRow> users = new()
+    {
+        new UserRow("דנה כהן",   "dana.cohen@gmail.com",  "הורה",       "14.9.2026",  "active"),
+        new UserRow("יוסי לוי",  "yossi@hadekel.org.il",  "מנהל מתנס",  "3.9.2026",   "active"),
+        new UserRow("רותם אלון", "rotem@hagefen.org.il",  "מנהל מתנס",  "3.11.2026",  "waiting"),
+        new UserRow("אבי כהן",   "avi.k@walla.co.il",     "הורה",       "22.9.2026",  "active"),
+        new UserRow("שירן לוי",  "shiran.levi@gmail.com", "הורה",       "1.10.2026",  "active"),
+        new UserRow("גל ספאם",   "deals4u@mail.ru",       "הורה",       "30.10.2026", "blocked"),
+    };
+
+    // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
+    // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
+    protected override string AllowedRole
+    {
+        get { return Roles.SuperAdmin; }
+    }
+}

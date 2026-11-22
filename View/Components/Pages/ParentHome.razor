@@ -1,8 +1,11 @@
 @page "/parent"
 @inherits ProtectedPage
 
-@* נוסף בשלב 8. הדף הראשי של הורה. דף מוגן: רק משתמש בתפקיד Parent רואה אותו.
-   בשלב הזה יש בו כותרת בלבד. את העיצוב נוסיף בשלב 9. *@
+@* הדף הראשי של הורה: מה שההורה רואה מיד אחרי ההתחברות.
+   נוסף בשלב 8 (כותרת בלבד), ועוצב בשלב 9.
+   דף מוגן: רק משתמש בתפקיד Parent רואה אותו.
+   בדף: תמונת מצב של הבקשות, קיצורי דרך למה שהורה יכול לעשות באתר, והבקשות האחרונות.
+   שלב עיצובי: הנתונים הם נתוני דוגמה שכתובים בקוד, בלי פנייה ל-API. *@
 
 <PageTitle>האזור שלי · Hobbify</PageTitle>
 
@@ -11,17 +14,78 @@
 {
     <main>
         <div class="hb-container">
-            <div class="page-head">
-                <div>
-                    <h1>האזור שלי</h1>
-                    <p>הדף הראשי של הורה</p>
+            <PageHead Title="@("שלום, " + Session.FullName)" Subtitle="כל החוגים והבקשות של המשפחה במקום אחד">
+                <a class="hb-btn hb-btn-primary" href=""><Icon Name="search" />חיפוש חוג</a>
+            </PageHead>
+
+            @* תמונת מצב. row ו-col הן מחלקות הרשת של Bootstrap: בטלפון כרטיס בשורה, במסך רחב שלושה *@
+            <div class="row g-4">
+                <div class="col-12 col-md-4">
+                    <StatCard Icon="clock" Color="yellow" Number="1" Title="בקשות בבדיקה" Note="רובוטיקה לצעירים" />
                 </div>
+                <div class="col-12 col-md-4">
+                    <StatCard Icon="check" Color="green" Number="3" Title="חוגים שאושרו" Note="2 ילדים רשומים" />
+                </div>
+                <div class="col-12 col-md-4">
+                    <StatCard Icon="heart" Color="primary" Number="4" Title="חוגים במועדפים" Note="נשמרו לאחר כך" />
+                </div>
+            </div>
+
+            <h2 class="block-title">מה אפשר לעשות</h2>
+            <div class="row g-4">
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="" Icon="search" Color="primary" Title="חיפוש חוג" Text="בחירת עיר, מתנס וחוג" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="parent/requests" Icon="inbox" Color="yellow" Title="הבקשות שלי" Text="מעקב אחרי בקשות ההרשמה" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="soon" Icon="calendar" Color="green" Title="מערכת שעות" Text="כל החוגים שאושרו, לפי ימים" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="soon" Icon="sparkles" Color="accent" Title="הובי" Text="עוזר AI שממליץ על חוגים" />
+                </div>
+            </div>
+
+            <div class="block-head">
+                <h2 class="block-title">הבקשות האחרונות</h2>
+                <a class="hb-btn hb-btn-plain hb-btn-sm" href="parent/requests">לכל הבקשות</a>
+            </div>
+            <div class="hb-card req-card">
+                @foreach (RecentRequest request in recentRequests)
+                {
+                    <div class="req">
+                        <div class="req-line">
+                            <div class="req-info">
+                                <span class="cat cat-@request.Category lg"><Icon Name="@request.Category" /></span>
+                                <div>
+                                    <b>@request.ClassName</b>
+                                    <small>@request.Details</small>
+                                </div>
+                            </div>
+                            <div class="req-act">
+                                <StatusBadge Status="@request.Status" />
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </main>
 }
 
 @code {
+    // נתוני דוגמה. בשלבים הבאים הבקשות יגיעו מבסיס הנתונים, דרך ה-API.
+    // Category: שם הקטגוריה באנגלית, קובע את הצבע והאייקון. Status: הסטטוס שהרכיב StatusBadge מציג.
+    private record RecentRequest(string ClassName, string Category, string Details, string Status);
+
+    private readonly List<RecentRequest> recentRequests = new()
+    {
+        new RecentRequest("רובוטיקה לצעירים", "science", "מתנס הדקל · עבור יואב (9) · נשלחה 2.11.2026",      "pending"),
+        new RecentRequest("כדורסל בנות",      "sport",   "מתנס נווה צדק · עבור נועה (11) · נשלחה 28.10.2026", "approved"),
+        new RecentRequest("גיטרה למתחילים",   "music",   "מתנס הדקל · עבור יואב (9) · נשלחה 20.10.2026",     "rejected"),
+    };
+
     // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
     // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
     protected override string AllowedRole

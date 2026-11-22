@@ -1,0 +1,27 @@
+@* נוסף בשלב 9. כותרת של דף פנימי: כותרת גדולה, שורת הסבר מתחתיה, ומקום לכפתור פעולה בצד.
+   רכיב משותף: כל הדפים הפנימיים משתמשים בו, ולכן הכותרות נראות אותו דבר בכל האתר.
+   שימוש:
+   <PageHead Title="החוגים שלי" Subtitle="18 חוגים">
+       <button class="hb-btn hb-btn-primary" type="button">הוספת חוג</button>
+   </PageHead> *@
+<div class="page-head">
+    <div>
+        <h1>@Title</h1>
+        @if (!string.IsNullOrEmpty(Subtitle))
+        {
+            <p>@Subtitle</p>
+        }
+    </div>
+    @ChildContent
+</div>
+
+@code {
+    // הכותרת של הדף
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    // שורת הסבר מתחת לכותרת (לא חובה)
+    [Parameter] public string? Subtitle { get; set; }
+
+    // מה שכותבים בין התגית הפותחת לסוגרת של הרכיב. משמש לכפתור הפעולה (לא חובה)
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

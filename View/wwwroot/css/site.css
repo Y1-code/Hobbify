@@ -956,3 +956,46 @@ main > .hb-container > :nth-child(n+5), .auth-card > :nth-child(n+5) { animation
 
 /* Blazor מעביר את הפוקוס לכותרת הדף אחרי מעבר בין דפים (לטובת קוראי מסך). בלי מסגרת סביב הכותרת */
 h1:focus { outline: none; }
+
+/* ---------- נוסף בשלב 9: מחלקות משותפות לדפים הפנימיים ---------- */
+
+/* האייקון הצבעוני בכרטיסי StatCard ו-ShortcutCard */
+.stat-icon { width: 44px; height: 44px; font-size: 22px; border-radius: 14px; }
+
+/* כותרת של אזור בתוך דף פנימי, למשל "קיצורי דרך" או "בקשות אחרונות".
+   תוקן בשלב 9.1: יותר מרווח מעליה ומתחתיה, כדי שלא תיראה צמודה לכרטיסים */
+.block-title { font-size: 24px; margin: 56px 0 24px; }
+
+/* שורת כותרת של אזור, עם קישור "לכל ה..." בצד */
+.block-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 56px 0 24px; }
+.block-head .block-title { margin: 0; }
+
+/* כרטיס שמחזיק רשימת בקשות (שורות req).
+   תוקן בשלב 9.1: יותר ריווח פנימי למעלה, למטה ובצדדים, כדי שהסטטוס לא יגע בקצה הכרטיס */
+.req-card { padding: 12px 32px; }
+.req-card .req { padding: 22px 0; }
+/* הסטטוס לא מתכווץ ולא נחתך, והטקסט של החוג הוא זה שנשבר לשורה נוספת אם צריך */
+.req-act { flex-shrink: 0; }
+.req-info { min-width: 0; }
+
+/* שורת הסבר קטנה מתחת לטבלה או לרשימה */
+.page-note { margin-top: 14px; font-size: 13px; color: var(--text-2); }
+
+/* ---------- התאמות לטלפון ולמסך צר ---------- */
+@media (max-width: 1000px) {
+  /* דף הבית: המפה עוברת מעל רשימת הערים, במקום לידה */
+  .home-top { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  /* טבלה רחבה נגללת לצדדים בתוך הכרטיס שלה, והדף עצמו לא זז */
+  /* position: relative מחזיק בתוך הכרטיס גם את הטקסט הנסתר (sr-only) שבכותרת הטבלה */
+  .table-card { overflow-x: auto; max-width: 100%; position: relative; }
+  .hb-table { min-width: 640px; }
+  /* שורת בקשה: הכפתורים והסטטוס יורדים לשורה חדשה */
+  .req-line { flex-wrap: wrap; }
+  .home-hero h1, .page-head h1 { font-size: 34px; }
+  /* בטלפון המרווחים קצת קטנים יותר, והכרטיס צר יותר */
+  .block-title { margin: 40px 0 20px; }
+  .block-head { margin: 40px 0 20px; }
+  .req-card { padding: 8px 20px; }
+}

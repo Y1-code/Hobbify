@@ -1,0 +1,85 @@
+@page "/parent/requests"
+@inherits ProtectedPage
+
+@* נוסף בשלב 9. "הבקשות שלי": כל בקשות ההרשמה של ההורה, עם הסטטוס של כל אחת.
+   דף מוגן: רק משתמש בתפקיד Parent רואה אותו.
+   שלב עיצובי: נתוני דוגמה בלבד, והכפתורים עדיין לא פועלים. *@
+
+<PageTitle>הבקשות שלי · Hobbify</PageTitle>
+
+@* התוכן מוצג רק אם התפקיד של המשתמש המחובר מתאים לדף. IsAllowed מגיעה מ-ProtectedPage *@
+@if (IsAllowed)
+{
+    <main>
+        <div class="hb-container mid">
+            <PageHead Title="הבקשות שלי" Subtitle="6 בקשות · 1 ממתינה לאישור" />
+
+            <div class="banner" style="margin-bottom:16px">
+                <span class="hb-row" style="gap:8px"><Icon Name="bell" />עדכון חדש: הבקשה לגיטרה למתחילים נדחתה.</span>
+            </div>
+
+            <div class="hb-card req-card">
+                @foreach (ClassRequest request in requests)
+                {
+                    <div class="req">
+                        <div class="req-line">
+                            <div class="req-info">
+                                <span class="cat cat-@request.Category lg"><Icon Name="@request.Category" /></span>
+                                <div>
+                                    <b>@request.ClassName</b>
+                                    <small>@request.Details</small>
+                                </div>
+                            </div>
+                            <div class="req-act">
+                                @* בקשה שעדיין בבדיקה אפשר לבטל. חוג שאושר אפשר לדרג *@
+                                @if (request.Status == "pending")
+                                {
+                                    <button class="hb-btn hb-btn-danger hb-btn-sm" type="button">בטל</button>
+                                }
+                                else if (request.Status == "approved")
+                                {
+                                    <button class="hb-btn hb-btn-tinted hb-btn-sm" type="button"><Icon Name="star" />דרג את החוג</button>
+                                }
+                                <StatusBadge Status="@request.Status" />
+                            </div>
+                        </div>
+
+                        @* בקשה שנדחתה מציגה את הסיבה שמנהל המתנס כתב *@
+                        @if (request.RejectReason != null)
+                        {
+                            <div class="reason">
+                                <b><Icon Name="x" />סיבת הדחייה</b>
+                                @request.RejectReason
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <p class="page-note">בקשה שאושרה או נדחתה לא ניתנת לביטול. אפשר לדרג רק חוג שההרשמה אליו אושרה.</p>
+        </div>
+    </main>
+}
+
+@code {
+    // נתוני דוגמה. RejectReason מלא רק בבקשה שנדחתה.
+    private record ClassRequest(string ClassName, string Category, string Details, string Status, string? RejectReason);
+
+    private readonly List<ClassRequest> requests = new()
+    {
+        new ClassRequest("רובוטיקה לצעירים", "science", "מתנס הדקל · עבור יואב (9) · נשלחה 2.11.2026",      "pending",   null),
+        new ClassRequest("כדורסל בנות",      "sport",   "מתנס נווה צדק · עבור נועה (11) · נשלחה 28.10.2026", "approved",  null),
+        new ClassRequest("גיטרה למתחילים",   "music",   "מתנס הדקל · עבור יואב (9) · נשלחה 20.10.2026",     "rejected",
+                         "החוג מלא לשנה הנוכחית. נשמח לראות את יואב בהרשמה לשנה הבאה."),
+        new ClassRequest("ציור וקרמיקה",     "art",     "מתנס יד אליהו · עבור נועה (11) · נשלחה 15.10.2026", "approved",  null),
+        new ClassRequest("מקהלת ילדים",      "music",   "מתנס הדקל · עבור יואב (9) · נשלחה 12.10.2026",     "approved",  null),
+        new ClassRequest("שחייה בבריכה",     "sport",   "מתנס הדקל · עבור יואב (9) · נשלחה 1.10.2026",      "cancelled", null),
+    };
+
+    // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
+    // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
+    protected override string AllowedRole
+    {
+        get { return Roles.Parent; }
+    }
+}

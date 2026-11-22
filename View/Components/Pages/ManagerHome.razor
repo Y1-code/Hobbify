@@ -1,8 +1,11 @@
 @page "/manager"
 @inherits ProtectedPage
 
-@* נוסף בשלב 8. הדף הראשי של מנהל מתנס. דף מוגן: רק משתמש בתפקיד Manager רואה אותו.
-   בשלב הזה יש בו כותרת בלבד. את העיצוב נוסיף בשלב 9. *@
+@* הדף הראשי של מנהל מתנס: לוח ניהול.
+   נוסף בשלב 8 (כותרת בלבד), ועוצב בשלב 9.
+   דף מוגן: רק משתמש בתפקיד Manager רואה אותו.
+   בדף: תמונת מצב של המתנס, קיצורי דרך, הבקשות האחרונות והחוגים שעומדים להתמלא.
+   שלב עיצובי: נתוני דוגמה בלבד, והכפתורים עדיין לא פועלים. *@
 
 <PageTitle>לוח ניהול · Hobbify</PageTitle>
 
@@ -11,10 +14,93 @@
 {
     <main>
         <div class="hb-container">
-            <div class="page-head">
-                <div>
-                    <h1>לוח ניהול של מנהל מתנס</h1>
-                    <p>הדף הראשי של מנהל מתנס</p>
+            <PageHead Title="@("שלום, " + Session.FullName)" Subtitle="מתנס הדקל · תל אביב">
+                <button class="hb-btn hb-btn-primary" type="button"><Icon Name="plus" />הוספת חוג</button>
+            </PageHead>
+
+            @* תמונת מצב של המתנס *@
+            <div class="row g-4">
+                <div class="col-12 col-md-4">
+                    <StatCard Icon="grid" Color="primary" Number="18" Title="חוגים פעילים" Note="2 חוגים חדשים החודש" />
+                </div>
+                <div class="col-12 col-md-4">
+                    <StatCard Icon="inbox" Color="yellow" Number="4" Title="בקשות ממתינות" Note="הוותיקה מלפני 5 ימים" />
+                </div>
+                <div class="col-12 col-md-4">
+                    <StatCard Icon="users" Color="green" Number="212" Title="סך הנרשמים" Note="+14 מתחילת החודש" />
+                </div>
+            </div>
+
+            <h2 class="block-title">קיצורי דרך</h2>
+            <div class="row g-4">
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="manager/classes" Icon="grid" Color="green" Title="החוגים שלי" Text="מקומות פנויים ועריכה" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="manager/requests" Icon="inbox" Color="yellow" Title="בקשות הרשמה" Text="4 בקשות מחכות לך" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="soon" Icon="plus" Color="primary" Title="הוספת חוג" Text="חוג חדש עם מפגשים ותמונה" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="soon" Icon="building" Color="accent" Title="פרטי המתנס" Text="תיאור, טלפון ולוגו" />
+                </div>
+            </div>
+
+            <div class="row g-4">
+                @* בקשות אחרונות *@
+                <div class="col-12 col-lg-7">
+                    <div class="block-head">
+                        <h2 class="block-title">בקשות אחרונות</h2>
+                        <a class="hb-btn hb-btn-plain hb-btn-sm" href="manager/requests">לכל הבקשות</a>
+                    </div>
+                    <div class="hb-card table-card">
+                        <table class="hb-table">
+                            <thead>
+                                <tr><th>ילד/ה</th><th>חוג</th><th>תאריך</th><th>סטטוס</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (RecentRequest request in recentRequests)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="name-cell">
+                                                <div>
+                                                    <b>@request.ChildName</b>
+                                                    <small>גיל @request.Age</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@request.ClassName</td>
+                                        <td class="muted">@request.Date</td>
+                                        <td><StatusBadge Status="@request.Status" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                @* חוגים שעומדים להתמלא. רוחב הפס הצבעוני נקבע באחוזים, לפי כמה מקומות כבר תפוסים *@
+                <div class="col-12 col-lg-5">
+                    <div class="block-head">
+                        <h2 class="block-title">עומדים להתמלא</h2>
+                    </div>
+                    <div class="hb-card list-card">
+                        @foreach (FillingClass filling in fillingClasses)
+                        {
+                            <div class="list-row">
+                                <span class="hb-row">
+                                    <span class="cat cat-@filling.Category"><Icon Name="@filling.Category" /></span>
+                                    <span>@filling.Name</span>
+                                </span>
+                                <div class="stack" style="gap:6px;min-width:140px">
+                                    <span class="small"><b>@filling.SpotsLeft</b> פנויים מתוך @filling.Capacity</span>
+                                    <span class="hb-progress sm"><span style="--p:@filling.PercentFull%"></span></span>
+                                </div>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
@@ -22,6 +108,33 @@
 }
 
 @code {
+    // נתוני דוגמה. בשלבים הבאים הם יגיעו מבסיס הנתונים, דרך ה-API.
+    private record RecentRequest(string ChildName, int Age, string ClassName, string Date, string Status);
+
+    private readonly List<RecentRequest> recentRequests = new()
+    {
+        new RecentRequest("יואב כהן", 9,  "רובוטיקה לצעירים", "2.11.2026", "pending"),
+        new RecentRequest("תמר לוי",  7,  "ציור בצבעי מים",   "2.11.2026", "pending"),
+        new RecentRequest("איתי ברק", 11, "גיטרה למתחילים",   "1.11.2026", "pending"),
+    };
+
+    // חוג שעומד להתמלא: כמה מקומות נשארו, מתוך כמה
+    private record FillingClass(string Name, string Category, int SpotsLeft, int Capacity)
+    {
+        // תכונה מחושבת: כמה אחוזים מהחוג כבר תפוסים
+        public int PercentFull
+        {
+            get { return (Capacity - SpotsLeft) * 100 / Capacity; }
+        }
+    }
+
+    private readonly List<FillingClass> fillingClasses = new()
+    {
+        new FillingClass("רובוטיקה לצעירים", "science", 3, 15),
+        new FillingClass("מדענים צעירים",    "science", 2, 12),
+        new FillingClass("שחייה בבריכה",     "sport",   5, 16),
+    };
+
     // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
     // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
     protected override string AllowedRole

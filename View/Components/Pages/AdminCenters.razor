@@ -1,0 +1,72 @@
+@page "/admin/centers"
+@inherits ProtectedPage
+
+@* נוסף בשלב 9. "מתנסים ממתינים": בקשות של מתנסים חדשים להצטרף לאתר. מנהל המערכת מאשר או דוחה.
+   דף מוגן: רק משתמש בתפקיד SuperAdmin רואה אותו.
+   שלב עיצובי: נתוני דוגמה בלבד, והכפתורים עדיין לא פועלים. *@
+
+<PageTitle>מתנסים ממתינים · Hobbify</PageTitle>
+
+@* התוכן מוצג רק אם התפקיד של המשתמש המחובר מתאים לדף. IsAllowed מגיעה מ-ProtectedPage *@
+@if (IsAllowed)
+{
+    <main>
+        <div class="hb-container mid">
+            <PageHead Title="מתנסים ממתינים" Subtitle="בקשות הצטרפות שמחכות לבדיקה שלך" />
+
+            <div class="stack" style="gap:20px">
+                @foreach (PendingCenter center in pendingCenters)
+                {
+                    <article class="hb-card pad stack">
+                        <div class="hb-row between wrap">
+                            <div>
+                                <h3 style="font-size:22px">@center.Name</h3>
+                                <span class="muted small">@center.City · נשלח @center.SentDate</span>
+                            </div>
+                            <StatusBadge Status="waiting" />
+                        </div>
+
+                        <dl class="kv">
+                            <dt>כתובת</dt>
+                            <dd>@center.Address</dd>
+                            <dt>טלפון</dt>
+                            <dd>@center.Phone</dd>
+                            <dt>מנהל המתנס</dt>
+                            <dd>@center.ManagerName</dd>
+                        </dl>
+
+                        <p class="muted">@center.Description</p>
+
+                        <div class="form-actions">
+                            <button class="hb-btn hb-btn-primary" type="button"><Icon Name="check" />אשר</button>
+                            <button class="hb-btn hb-btn-danger" type="button"><Icon Name="x" />דחה</button>
+                        </div>
+                    </article>
+                }
+            </div>
+
+            <p class="page-note">אחרי אישור, המתנס מופיע במפת העיר והמנהל שלו יכול להוסיף חוגים.</p>
+        </div>
+    </main>
+}
+
+@code {
+    // נתוני דוגמה. מתנס שמחכה לאישור של מנהל המערכת.
+    private record PendingCenter(string Name, string City, string SentDate, string Address,
+                                 string Phone, string ManagerName, string Description);
+
+    private readonly List<PendingCenter> pendingCenters = new()
+    {
+        new PendingCenter("מתנס הגפן", "תל אביב", "3.11.2026", "רחוב הגפן 7, תל אביב", "03-5468890", "רותם אלון",
+                          "מתנס קהילתי עם חוגי ספורט ואמנות לילדים, מגרש מקורה וחדר יצירה."),
+        new PendingCenter("מתנס גבעת שאול", "ירושלים", "1.11.2026", "קצנלבוגן 40, ירושלים", "02-6517733", "אסף מזרחי",
+                          "חוגי מוזיקה, מדע ושחמט לילדים בגילאי 5-14, עם סטודיו מוזיקה מאובזר."),
+    };
+
+    // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
+    // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
+    protected override string AllowedRole
+    {
+        get { return Roles.SuperAdmin; }
+    }
+}

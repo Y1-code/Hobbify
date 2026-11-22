@@ -1,6 +1,6 @@
 @page "/pages"
 
-@* נוסף בשלב 8. מפת האתר: כל הדפים, מחולקים לפי התפקיד שמורשה להיכנס אליהם.
+@* נוסף בשלב 8, ובשלב 9 נוספו הדפים הפנימיים החדשים. מפת האתר: כל הדפים, מחולקים לפי התפקיד שמורשה להיכנס אליהם.
    הדף פתוח לכולם, והוא נוח לבדיקת ההרשאות: לוחצים על דף של תפקיד אחר, ורואים שההגנה עובדת.
    (הקלדת כתובת בשורת הכתובת טוענת את האתר מחדש, פותחת חיבור חדש, והמשתמש כבר לא מחובר.
    לחיצה על קישור בתוך האתר נשארת באותו חיבור.) *@
@@ -29,18 +29,23 @@
                 <section class="hb-card sitemap-card">
                     <h3>הורה</h3>
                     <a class="hb-page-link" href="parent"><span>האזור שלי</span><Icon Name="chev-left" /></a>
+                    <a class="hb-page-link" href="parent/requests"><span>הבקשות שלי</span><Icon Name="chev-left" /></a>
                 </section>
             </div>
             <div class="col-12 col-md-6">
                 <section class="hb-card sitemap-card">
                     <h3>מנהל מתנס</h3>
                     <a class="hb-page-link" href="manager"><span>לוח ניהול</span><Icon Name="chev-left" /></a>
+                    <a class="hb-page-link" href="manager/classes"><span>החוגים שלי</span><Icon Name="chev-left" /></a>
+                    <a class="hb-page-link" href="manager/requests"><span>בקשות הרשמה</span><Icon Name="chev-left" /></a>
                 </section>
             </div>
             <div class="col-12 col-md-6">
                 <section class="hb-card sitemap-card">
                     <h3>מנהל המערכת</h3>
                     <a class="hb-page-link" href="admin"><span>לוח ניהול</span><Icon Name="chev-left" /></a>
+                    <a class="hb-page-link" href="admin/centers"><span>מתנסים ממתינים</span><Icon Name="chev-left" /></a>
+                    <a class="hb-page-link" href="admin/users"><span>ניהול משתמשים</span><Icon Name="chev-left" /></a>
                 </section>
             </div>
         </div>

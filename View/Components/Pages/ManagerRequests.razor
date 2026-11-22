@@ -1,0 +1,82 @@
+@page "/manager/requests"
+@inherits ProtectedPage
+
+@* נוסף בשלב 9. "בקשות הרשמה": הבקשות שהורים שלחו לחוגים של המתנס. המנהל מאשר או דוחה.
+   דף מוגן: רק משתמש בתפקיד Manager רואה אותו.
+   שלב עיצובי: נתוני דוגמה בלבד, והכפתורים עדיין לא פועלים. *@
+
+<PageTitle>בקשות הרשמה · Hobbify</PageTitle>
+
+@* התוכן מוצג רק אם התפקיד של המשתמש המחובר מתאים לדף. IsAllowed מגיעה מ-ProtectedPage *@
+@if (IsAllowed)
+{
+    <main>
+        <div class="hb-container">
+            <PageHead Title="בקשות הרשמה" Subtitle="רק בקשות לחוגים של מתנס הדקל" />
+
+            <div class="hb-card table-card">
+                <table class="hb-table">
+                    <thead>
+                        <tr>
+                            <th>שם הילד</th><th>גיל</th><th>חוג</th><th>שם ההורה</th><th>טלפון</th><th>תאריך</th><th>סטטוס</th>
+                            <th><span class="sr-only">פעולות</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (RequestRow row in requests)
+                        {
+                            <tr>
+                                <td><b>@row.ChildName</b></td>
+                                <td>@row.Age</td>
+                                <td>@row.ClassName</td>
+                                <td>@row.ParentName</td>
+                                <td dir="ltr" style="text-align:right">@row.Phone</td>
+                                <td class="muted">@row.Date</td>
+                                <td><StatusBadge Status="@row.Status" /></td>
+                                <td>
+                                    <div class="actions">
+                                        @* רק בקשה שעדיין בבדיקה אפשר לאשר או לדחות *@
+                                        @if (row.Status == "pending")
+                                        {
+                                            <button class="hb-btn hb-btn-primary hb-btn-sm" type="button"><Icon Name="check" />אשר</button>
+                                            <button class="hb-btn hb-btn-danger hb-btn-sm" type="button">דחה</button>
+                                        }
+                                        else
+                                        {
+                                            <span class="muted small">טופל</span>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="page-note">באישור, המקומות הפנויים בחוג יורדים ב-1. כשהחוג מלא, אפשר רק לדחות.</p>
+        </div>
+    </main>
+}
+
+@code {
+    // נתוני דוגמה. שורה בטבלה: בקשת הרשמה אחת.
+    private record RequestRow(string ChildName, int Age, string ClassName, string ParentName,
+                              string Phone, string Date, string Status);
+
+    private readonly List<RequestRow> requests = new()
+    {
+        new RequestRow("יואב כהן",  9,  "רובוטיקה לצעירים", "דנה כהן",   "052-7314420", "2.11.2026",  "pending"),
+        new RequestRow("תמר לוי",   7,  "ציור בצבעי מים",   "שירן לוי",  "054-8812034", "2.11.2026",  "pending"),
+        new RequestRow("איתי ברק",  11, "גיטרה למתחילים",   "עומר ברק",  "050-6627190", "1.11.2026",  "pending"),
+        new RequestRow("מאיה אדלר", 6,  "מדענים צעירים",    "ליאת אדלר", "053-4401287", "31.10.2026", "pending"),
+        new RequestRow("נועם שחר",  8,  "כדורגל קטסל",      "רועי שחר",  "052-9907741", "29.10.2026", "approved"),
+        new RequestRow("יעל מור",   10, "רובוטיקה לצעירים", "אורנה מור", "058-3326610", "27.10.2026", "rejected"),
+    };
+
+    // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
+    // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
+    protected override string AllowedRole
+    {
+        get { return Roles.Manager; }
+    }
+}

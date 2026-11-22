@@ -1,0 +1,100 @@
+@page "/manager/classes"
+@inherits ProtectedPage
+
+@* נוסף בשלב 9. "החוגים שלי": טבלה של כל החוגים במתנס, עם מקומות פנויים וסטטוס.
+   דף מוגן: רק משתמש בתפקיד Manager רואה אותו.
+   שלב עיצובי: נתוני דוגמה בלבד, והכפתורים עדיין לא פועלים. *@
+
+<PageTitle>החוגים שלי · Hobbify</PageTitle>
+
+@* התוכן מוצג רק אם התפקיד של המשתמש המחובר מתאים לדף. IsAllowed מגיעה מ-ProtectedPage *@
+@if (IsAllowed)
+{
+    <main>
+        <div class="hb-container">
+            <PageHead Title="החוגים שלי" Subtitle="מתנס הדקל · 6 חוגים">
+                <button class="hb-btn hb-btn-primary" type="button"><Icon Name="plus" />הוספת חוג</button>
+            </PageHead>
+
+            <div class="hb-card table-card">
+                <table class="hb-table">
+                    <thead>
+                        <tr>
+                            <th>חוג</th><th>מפגשים</th><th>מחיר</th><th>מקומות</th><th>סטטוס</th>
+                            <th><span class="sr-only">פעולות</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (ClassRow row in classes)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="name-cell">
+                                        <span class="cat cat-@row.Category lg"><Icon Name="@row.Category" /></span>
+                                        <div>
+                                            <b>@row.Name</b>
+                                            <small>גילאי @row.Ages</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="muted">@row.Times</td>
+                                <td>₪@row.Price</td>
+                                <td>
+                                    <div class="stack" style="gap:6px;min-width:140px">
+                                        <span class="small"><b>@row.SpotsLeft</b> פנויים מתוך @row.Capacity</span>
+                                        <span class="hb-progress sm"><span style="--p:@row.PercentFull%"></span></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @* חוג בלי מקומות פנויים מסומן "מלא" *@
+                                    @if (row.SpotsLeft == 0)
+                                    {
+                                        <StatusBadge Status="full" />
+                                    }
+                                    else
+                                    {
+                                        <StatusBadge Status="active" />
+                                    }
+                                </td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="hb-btn hb-btn-secondary hb-btn-sm" type="button"><Icon Name="edit" />ערוך</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+}
+
+@code {
+    // נתוני דוגמה. שורה בטבלה: חוג אחד של המתנס.
+    private record ClassRow(string Name, string Category, string Ages, string Times, int Price, int SpotsLeft, int Capacity)
+    {
+        // תכונה מחושבת: כמה אחוזים מהחוג כבר תפוסים. קובעת את רוחב הפס הצבעוני
+        public int PercentFull
+        {
+            get { return (Capacity - SpotsLeft) * 100 / Capacity; }
+        }
+    }
+
+    private readonly List<ClassRow> classes = new()
+    {
+        new ClassRow("רובוטיקה לצעירים", "science", "8-11",  "ב׳ ו-ד׳ · 16:30-17:30", 220, 3, 15),
+        new ClassRow("כדורגל קטסל",      "sport",   "6-9",   "א׳ ו-ג׳ · 16:00-17:00", 170, 8, 20),
+        new ClassRow("גיטרה למתחילים",   "music",   "10-16", "ה׳ · 15:30-16:30",      260, 0, 8),
+        new ClassRow("ציור בצבעי מים",   "art",     "7-10",  "ג׳ · 16:00-17:15",      190, 4, 12),
+        new ClassRow("מדענים צעירים",    "science", "5-7",   "ד׳ · 16:00-16:45",      160, 2, 12),
+        new ClassRow("שחייה בבריכה",     "sport",   "7-12",  "א׳ ו-ה׳ · 17:00-17:45", 240, 5, 16),
+    };
+
+    // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
+    // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
+    protected override string AllowedRole
+    {
+        get { return Roles.Manager; }
+    }
+}

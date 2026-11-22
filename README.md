@@ -1,3 +1,38 @@
+# Hobbify
+
+אתר שמרכז את החוגים לילדים של המתנסים בישראל: מפה, חיפוש, הרשמה ומעקב אחרי בקשות.
+פרויקט גמר בהנדסת תוכנה, בארבע שכבות: Model, DAL, API ו-View, עם Blazor Server, ASP.NET Core Web API ו-MySQL.
+
+## גרסאות
+
+הפרויקט נבנה בשלבים. לכל שלב יש tag ו-Release.
+
+| גרסה | מה נוסף | קוד |
+|---|---|---|
+| 1 | מבנה ראשוני של ארבע שכבות | [v1](https://github.com/Y1-code/Hobbify/tree/v1) |
+| 2 | יצירה של בסיס הנתונים HobbifyDB והטבלאות | [v2](https://github.com/Y1-code/Hobbify/tree/v2) |
+| 3 | מחלקות Model, שאילתות משתמשים ב-DAL ו-endpoints ב-API | [v3](https://github.com/Y1-code/Hobbify/tree/v3) |
+| 4 | דף בית, דף הרשמה ודף התחברות (עיצוב) | [v4](https://github.com/Y1-code/Hobbify/tree/v4) |
+| 5 | הפעלת דף ההרשמה, ותיקונים לפי המשוב: טבלת Roles, פביקון וניקיון | [v5](https://github.com/Y1-code/Hobbify/tree/v5) |
+| 6 | עיצוב חדש לאתר, התחברות, והשירות UserSession שזוכר את המשתמש המחובר | [v6](https://github.com/Y1-code/Hobbify/tree/v6) |
+| 7 | גיבוב סיסמאות עם BCrypt, ובדיקות התחברות לכל תפקיד | [v7](https://github.com/Y1-code/Hobbify/tree/v7) |
+| 8 | רמות הרשאה: דף ראשי לכל תפקיד, הגנה על דפים ודף "אין הרשאה" | [v8](https://github.com/Y1-code/Hobbify/tree/v8) |
+| 9 | עיצוב הדפים הפנימיים של הורה, מנהל מתנס ומנהל המערכת | [v9](https://github.com/Y1-code/Hobbify/tree/v9) |
+
+## משתמשים לבדיקה
+
+נוצרים אוטומטית בבסיס נתונים חדש (DatabaseInitializer), עם סיסמה מגובבת.
+
+| תפקיד | אימייל | סיסמה |
+|---|---|---|
+| מנהל המערכת (SuperAdmin) | admin@hobbify.co.il | Admin123 |
+| מנהל מתנס (Manager) | ronit@hobbify.co.il | Manager123 |
+| הורה (Parent) | dana@example.com | Parent123 |
+
+מחרוזת החיבור לבסיס הנתונים, כולל הסיסמה, נשמרת ב-User Secrets ולא עולה ל-GitHub.
+
+---
+
 # מסמך ייזום ותרחישי שימוש - Hobbify
 
 Oct 14, 2026 · @Yarin

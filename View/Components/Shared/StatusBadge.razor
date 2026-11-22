@@ -1,18 +1,54 @@
 @* תגית סטטוס: עיגול צבעוני עם אייקון, ולידו טקסט. למשל "אושר" בירוק או "בבדיקה" בצהוב.
    רכיב משותף: משתמשים בו בדף הבית ובדפים של ההורה, מנהל המתנס ומנהל המערכת.
-   שימוש: <StatusBadge Color="green" Icon="check" Text="אושר" /> *@
-<span class="status st-@Color">
-    <span class="st-ic"><Icon Name="@Icon" /></span>
-    @Text
+   הדף מעביר רק את שם הסטטוס, והרכיב קובע את הצבע, האייקון והטקסט. כך הם זהים בכל האתר.
+   שימוש: <StatusBadge Status="approved" /> *@
+<span class="status st-@color">
+    <span class="st-ic"><Icon Name="@icon" /></span>
+    @text
 </span>
 
 @code {
-    // הצבע: green, yellow, red או gray
-    [Parameter, EditorRequired] public string Color { get; set; } = "";
+    // שם הסטטוס באנגלית: pending, approved, rejected, cancelled, active, full, waiting, blocked
+    [Parameter, EditorRequired] public string Status { get; set; } = "";
 
-    // שם האייקון שבתוך העיגול, למשל check, clock, x
-    [Parameter, EditorRequired] public string Icon { get; set; } = "";
+    private string color = "gray";
+    private string icon = "ban";
+    private string text = "";
 
-    // הטקסט שליד העיגול
-    [Parameter, EditorRequired] public string Text { get; set; } = "";
+    // רצה בכל פעם שהרכיב מקבל פרמטרים, וקובעת את הצבע, האייקון והטקסט לפי הסטטוס
+    protected override void OnParametersSet()
+    {
+        if (Status == "pending")
+        {
+            color = "yellow"; icon = "clock"; text = "בבדיקה";
+        }
+        else if (Status == "waiting")
+        {
+            color = "yellow"; icon = "clock"; text = "ממתין לאישור";
+        }
+        else if (Status == "approved")
+        {
+            color = "green"; icon = "check"; text = "אושר";
+        }
+        else if (Status == "active")
+        {
+            color = "green"; icon = "check"; text = "פעיל";
+        }
+        else if (Status == "rejected")
+        {
+            color = "red"; icon = "x"; text = "נדחה";
+        }
+        else if (Status == "full")
+        {
+            color = "red"; icon = "x"; text = "החוג מלא";
+        }
+        else if (Status == "blocked")
+        {
+            color = "red"; icon = "ban"; text = "חסום";
+        }
+        else
+        {
+            color = "gray"; icon = "ban"; text = "בוטל";
+        }
+    }
 }

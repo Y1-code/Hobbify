@@ -6,7 +6,8 @@
 @* המבנה המשותף של כל הדפים: סרגל עליון, ומתחתיו הדף עצמו (@Body).
    מה שכתוב כאן מופיע בכל דף באתר.
    נוסף בשלב 6: הסרגל מציג מי מחובר, ויש בו כפתור התנתקות.
-   נוסף בשלב 8: התפריט משתנה לפי התפקיד, ובתחתית כל דף יש קישור למפת האתר. *@
+   נוסף בשלב 8: התפריט משתנה לפי התפקיד, ובתחתית כל דף יש קישור למפת האתר.
+   נוסף בשלב 9: קישורים לדפים הפנימיים החדשים של כל תפקיד. *@
 
 <header class="hb-nav">
     <div class="hb-container nav-inner">
@@ -20,14 +21,19 @@
                 {
                     <NavLink href="" Match="NavLinkMatch.All">דף הבית</NavLink>
                     <NavLink href="parent" Match="NavLinkMatch.All">האזור שלי</NavLink>
+                    <NavLink href="parent/requests">הבקשות שלי</NavLink>
                 }
                 else if (Session.Role == Roles.Manager)
                 {
                     <NavLink href="manager" Match="NavLinkMatch.All">לוח ניהול</NavLink>
+                    <NavLink href="manager/classes">החוגים שלי</NavLink>
+                    <NavLink href="manager/requests">בקשות הרשמה</NavLink>
                 }
                 else if (Session.Role == Roles.SuperAdmin)
                 {
                     <NavLink href="admin" Match="NavLinkMatch.All">לוח ניהול</NavLink>
+                    <NavLink href="admin/centers">מתנסים ממתינים</NavLink>
+                    <NavLink href="admin/users">משתמשים</NavLink>
                 }
                 else
                 {

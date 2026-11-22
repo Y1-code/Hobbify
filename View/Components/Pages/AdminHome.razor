@@ -1,8 +1,10 @@
 @page "/admin"
 @inherits ProtectedPage
 
-@* נוסף בשלב 8. הדף הראשי של מנהל המערכת. דף מוגן: רק משתמש בתפקיד SuperAdmin רואה אותו.
-   בשלב הזה יש בו כותרת בלבד. את העיצוב נוסיף בשלב 9. *@
+@* הדף הראשי של מנהל המערכת: תמונת מצב של האתר, וגישה לכל אפשרויות הניהול.
+   נוסף בשלב 8 (כותרת בלבד), ועוצב בשלב 9.
+   דף מוגן: רק משתמש בתפקיד SuperAdmin רואה אותו.
+   שלב עיצובי: נתוני דוגמה בלבד. *@
 
 <PageTitle>ניהול המערכת · Hobbify</PageTitle>
 
@@ -11,17 +13,67 @@
 {
     <main>
         <div class="hb-container">
-            <div class="page-head">
-                <div>
-                    <h1>לוח ניהול של מנהל המערכת</h1>
-                    <p>הדף הראשי של מנהל המערכת</p>
+            <PageHead Title="ניהול המערכת" Subtitle="@("שלום, " + Session.FullName)" />
+
+            @* תמונת מצב של האתר *@
+            <div class="row g-4">
+                <div class="col-6 col-lg-3">
+                    <StatCard Icon="users" Color="primary" Number="1,284" Title="משתמשים" Note="+37 החודש" />
                 </div>
+                <div class="col-6 col-lg-3">
+                    <StatCard Icon="building" Color="green" Number="64" Title="מתנסים פעילים" Note="ב-7 ערים" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <StatCard Icon="clock" Color="yellow" Number="2" Title="מתנסים ממתינים" Note="מחכים לאישור שלך" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <StatCard Icon="grid" Color="accent" Number="912" Title="חוגים באתר" Note="ב-4 קטגוריות" />
+                </div>
+            </div>
+
+            <h2 class="block-title">אפשרויות ניהול</h2>
+            <div class="row g-4">
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="admin/centers" Icon="building" Color="yellow" Title="מתנסים ממתינים" Text="אישור או דחייה של מתנסים חדשים" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="admin/users" Icon="users" Color="primary" Title="משתמשים" Text="תפקידים וחסימת משתמשים" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="soon" Icon="map" Color="green" Title="ערים" Text="מפת העיר והמיקום במפת ישראל" />
+                </div>
+                <div class="col-6 col-lg-3">
+                    <ShortcutCard Href="soon" Icon="tag" Color="accent" Title="קטגוריות" Text="ספורט, אמנות, מוזיקה, מדע" />
+                </div>
+            </div>
+
+            @* כמה משתמשים יש בכל תפקיד *@
+            <h2 class="block-title">משתמשים לפי תפקיד</h2>
+            <div class="hb-card list-card">
+                @foreach (RoleCount roleCount in roleCounts)
+                {
+                    <div class="list-row">
+                        <span>@roleCount.RoleName</span>
+                        <b>@roleCount.Count</b>
+                    </div>
+                }
             </div>
         </div>
     </main>
 }
 
 @code {
+    // נתוני דוגמה. ב-API כבר קיימת כתובת שמחזירה את הספירה הזו (GET api/users/count-by-role),
+    // ובשלב ההפעלה הדף יקרא לה במקום הרשימה הקבועה.
+    private record RoleCount(string RoleName, string Count);
+
+    private readonly List<RoleCount> roleCounts = new()
+    {
+        new RoleCount("הורים", "1,215"),
+        new RoleCount("מנהלי מתנסים", "67"),
+        new RoleCount("מנהלי מערכת", "2"),
+    };
+
     // התפקיד שמורשה להיכנס לדף. הדף דורס (override) את התכונה המופשטת של ProtectedPage,
     // ומחלקת הבסיס עושה את הבדיקה: אורח עובר לדף ההתחברות, ותפקיד אחר עובר לדף "אין הרשאה".
     protected override string AllowedRole
